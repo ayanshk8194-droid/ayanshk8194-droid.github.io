@@ -285,16 +285,23 @@
   <script defer src="app.bundle.js"></script>
   <script>
     // Trick the game into rendering at a higher resolution on mobile
-    // so that text and sprites don't look giant.
-    if (window.innerWidth < 1280) {
-      const scale = 1280 / window.innerWidth;
-      Object.defineProperty(window, 'innerWidth', { get: () => Math.floor(document.documentElement.clientWidth * scale) });
-      Object.defineProperty(window, 'innerHeight', { get: () => Math.floor(document.documentElement.clientHeight * scale) });
+    // by wrapping the canvas in a scaled container that Kaboom reads for sizing.
+    function initWrapper() {
+      if (window.innerWidth < 1280) {
+        const scale = 1280 / window.innerWidth;
+        const w = Math.floor(window.innerWidth * scale);
+        const h = Math.floor(window.innerHeight * scale);
+        document.write(`<div id="game-wrapper" style="width: ${w}px; height: ${h}px; position: absolute; visibility: hidden; pointer-events: none;">`);
+      } else {
+        document.write(`<div id="game-wrapper" style="width: ${window.innerWidth}px; height: ${window.innerHeight}px; position: absolute; visibility: hidden; pointer-events: none;">`);
+      }
     }
+    initWrapper();
   </script>
 </head>
 <body>
   <canvas id="container"></canvas>
+  <script>document.write('</div>');</script>
 
   <!-- Portrait Orientation Hint (touch devices only) -->
   <div class="portrait-hint">🔄 Rotate phone to Landscape for best view</div>
