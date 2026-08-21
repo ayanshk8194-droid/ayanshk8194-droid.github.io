@@ -283,6 +283,8 @@
   </style>
 
   <script defer src="app.bundle.js"></script>
+</head>
+<body>
   <script>
     // Trick the game into rendering at a higher resolution on mobile
     // by wrapping the canvas in a scaled container that Kaboom reads for sizing.
@@ -298,8 +300,6 @@
     }
     initWrapper();
   </script>
-</head>
-<body>
   <canvas id="container"></canvas>
   <script>document.write('</div>');</script>
 
