@@ -283,6 +283,15 @@
   </style>
 
   <script defer src="app.bundle.js"></script>
+  <script>
+    // Trick the game into rendering at a higher resolution on mobile
+    // so that text and sprites don't look giant.
+    if (window.innerWidth < 1280) {
+      const scale = 1280 / window.innerWidth;
+      Object.defineProperty(window, 'innerWidth', { get: () => Math.floor(document.documentElement.clientWidth * scale) });
+      Object.defineProperty(window, 'innerHeight', { get: () => Math.floor(document.documentElement.clientHeight * scale) });
+    }
+  </script>
 </head>
 <body>
   <canvas id="container"></canvas>
