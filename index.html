@@ -368,7 +368,7 @@
   </style>
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔭</text></svg>">
-  <script defer src="app.bundle.js?v=13"></script>
+  <script defer src="app.bundle.js?v=14"></script>
 </head>
 <body>
   <canvas id="container"></canvas>
@@ -411,8 +411,22 @@
       // A device is treated as "touch" if it has a coarse pointer (finger, not mouse)
       // OR exposes touch APIs. This is what decides whether the on-screen D-pad/SNAP
       // button (mobile) or the keyboard hint (desktop) is shown.
+      let hasRequestedFullScreen = false;
       function requestFullScreen() {
-        // Disabled to prevent Chrome/Android from displaying invasive system notification toasts on tap
+        if (hasRequestedFullScreen) return;
+        var doc = window.document;
+        var docEl = doc.documentElement;
+        var req = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+        if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement && req) {
+          try {
+            var p = req.call(docEl);
+            if (p && p.then) {
+              p.then(function() { hasRequestedFullScreen = true; }).catch(function(){});
+            } else {
+              hasRequestedFullScreen = true;
+            }
+          } catch(e){}
+        }
       }
 
       function isLikelyTouchDevice() {
