@@ -43,6 +43,16 @@
       object-fit: contain;
     }
 
+    /* Scale canvas down slightly on mobile so text/gameplay elements look smaller and controls sit cleanly around it */
+    @media (max-width: 900px) {
+      #container {
+        width: 86vw !important;
+        height: 86dvh !important;
+        top: 7dvh !important;
+        left: 7vw !important;
+      }
+    }
+
     /* --- Responsive NASA UI Elements --- */
     #rstLangDiv {
       width: 100% !important;
@@ -285,23 +295,7 @@
   <script defer src="app.bundle.js"></script>
 </head>
 <body>
-  <script>
-    // Trick the game into rendering at a higher resolution on mobile
-    // by wrapping the canvas in a scaled container that Kaboom reads for sizing.
-    function initWrapper() {
-      if (window.innerWidth < 1280) {
-        const scale = 1280 / window.innerWidth;
-        const w = Math.floor(window.innerWidth * scale);
-        const h = Math.floor(window.innerHeight * scale);
-        document.write(`<div id="game-wrapper" style="width: ${w}px; height: ${h}px; position: absolute; visibility: hidden; pointer-events: none;">`);
-      } else {
-        document.write(`<div id="game-wrapper" style="width: ${window.innerWidth}px; height: ${window.innerHeight}px; position: absolute; visibility: hidden; pointer-events: none;">`);
-      }
-    }
-    initWrapper();
-  </script>
   <canvas id="container"></canvas>
-  <script>document.write('</div>');</script>
 
   <!-- Portrait Orientation Hint (touch devices only) -->
   <div class="portrait-hint">🔄 Rotate phone to Landscape for best view</div>
