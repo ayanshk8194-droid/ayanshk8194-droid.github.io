@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Roman Space Observer - Mobile Touch Edition</title>
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: #000;
+      touch-action: none;
+      overscroll-behavior: none;
+      position: fixed;
+      inset: 0;
+    }
+
+    #container {
+      display: block;
+      width: 100vw !important;
+      height: 100dvh !important;
+      height: 100vh !important;
+      position: fixed;
+      top: 0;
+      left: 0;
+      object-fit: contain;
+    }
+
+    /* --- Responsive NASA UI Elements --- */
+    #rstLangDiv {
+      width: 100% !important;
+      height: 100dvh !important;
+      position: fixed !important;
+      inset: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .lang-en {
+      font-size: clamp(13px, 3.5vw, 18px) !important;
+      color: #fff !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      text-align: center !important;
+      line-height: 1.8 !important;
+      padding: 12px 20px;
+      border: 2px dashed #00d2ff;
+      border-radius: 12px;
+      background: rgba(0, 210, 255, 0.1);
+      cursor: pointer;
+    }
+
+    #rstDiv {
+      background-color: rgba(0, 0, 0, 0.95) !important;
+      position: fixed !important;
+      inset: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex-direction: column !important;
+      color: #fff !important;
+      padding: 15px 24px !important;
+      z-index: 1000 !important;
+      overflow-y: auto !important;
+    }
+
+    #rstHeading {
+      font-size: clamp(16px, 4vw, 24px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      margin-bottom: 8px !important;
+      text-align: center !important;
+      color: #00d2ff !important;
+    }
+
+    #rstDiv h5 {
+      font-size: clamp(10px, 2.5vw, 13px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      line-height: 1.5 !important;
+      text-align: center !important;
+      max-width: 680px !important;
+      margin: 8px 0 14px 0 !important;
+      opacity: 0.9;
+    }
+
+    #rstButton {
+      font-size: clamp(14px, 3.2vw, 18px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      padding: 12px 28px !important;
+      background-color: #00276b !important;
+      color: #fff !important;
+      border: 2px solid #00d2ff !important;
+      border-radius: 14px !important;
+      cursor: pointer !important;
+      box-shadow: 0 4px 12px rgba(0, 210, 255, 0.3) !important;
+      text-shadow: none !important;
+    }
+    #rstButton:active {
+      transform: scale(0.95);
+      background-color: #00d2ff !important;
+      color: #000 !important;
+    }
+
+    /* --- Top Language Selector Quick Bar --- */
+    .top-lang-bar {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      z-index: 9999999;
+      pointer-events: auto;
+    }
+    .lang-pill-btn {
+      background: rgba(0, 20, 60, 0.85);
+      border: 2px solid #00d2ff;
+      color: #fff;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(11px, 2.8vw, 14px);
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+    .lang-pill-btn:active {
+      background: #00d2ff;
+      color: #000;
+      transform: scale(0.94);
+    }
+
+    /* --- Mobile Virtual Controls Overlay --- */
+    /* Hidden by default; only shown on touch-capable devices (see .is-touch-device below).
+       This is the "cross platform" switch: desktop/mouse+keyboard users never see
+       the on-screen D-pad/SNAP button, touch/mobile users always do. */
+    .touch-ctrl-container {
+      display: none;
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999999;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: clamp(10px, 3vw, 24px);
+      padding-bottom: max(env(safe-area-inset-bottom, 12px), 12px);
+    }
+    html.is-touch-device .touch-ctrl-container {
+      display: flex;
+    }
+
+    /* --- Desktop keyboard hint (mirrors the mobile touch controls) --- */
+    .desktop-key-hint {
+      display: none;
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: #cfefff;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      padding: 8px 16px;
+      border-radius: 20px;
+      z-index: 999999;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.6s ease;
+    }
+    .desktop-key-hint.fade-out {
+      opacity: 0;
+    }
+    html.is-desktop-device .desktop-key-hint {
+      display: block;
+    }
+
+    .touch-btn {
+      pointer-events: auto;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      border-radius: 50%;
+      color: #ffffff;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      transition: transform 0.05s ease, background 0.05s ease;
+      cursor: pointer;
+      outline: none;
+    }
+    .touch-btn:active {
+      background: rgba(0, 200, 255, 0.7);
+      transform: scale(0.92);
+    }
+
+    /* D-Pad on Bottom Left */
+    .dpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, clamp(44px, 11vw, 60px));
+      grid-template-rows: repeat(3, clamp(44px, 11vw, 60px));
+      gap: 5px;
+      margin-left: env(safe-area-inset-left, 0);
+    }
+    .dpad-grid .touch-btn {
+      width: 100%;
+      height: 100%;
+      font-size: clamp(16px, 4vw, 24px);
+    }
+
+    /* Action Snap Button on Bottom Right */
+    .action-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-right: env(safe-area-inset-right, 0);
+      margin-bottom: 6px;
+    }
+    .btn-action {
+      width: clamp(68px, 16vw, 92px);
+      height: clamp(68px, 16vw, 92px);
+      font-size: clamp(12px, 3.2vw, 16px);
+      text-align: center;
+      background: rgba(255, 50, 50, 0.45);
+      border-color: rgba(255, 120, 120, 0.85);
+      line-height: 1.2;
+    }
+    .btn-action:active {
+      background: rgba(255, 50, 50, 0.9);
+      transform: scale(0.92);
+    }
+
+    /* Portrait Rotation Hint */
+    .portrait-hint {
+      display: none;
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: #ffeb3b;
+      font-family: system-ui, sans-serif;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 15px;
+      z-index: 99999999;
+      pointer-events: none;
+    }
+
+    /* Only nudge people to rotate when they're actually on a touch device -
+       a desktop window in a "portrait-ish" shape shouldn't show this. */
+    @media (orientation: portrait) {
+      html.is-touch-device .portrait-hint {
+        display: block;
+      }
+    }
+  </style>
+
+  <script defer src="app.bundle.js"></script>
+</head>
+<body>
+  <canvas id="container"></canvas>
+
+  <!-- Portrait Orientation Hint (touch devices only) -->
+  <div class="portrait-hint">🔄 Rotate phone to Landscape for best view</div>
+
+  <!-- Keyboard Controls Hint (desktop/mouse devices only) -->
+  <div class="desktop-key-hint" id="desktop-key-hint">Move: ← ↑ → ↓ &nbsp;&nbsp;|&nbsp;&nbsp; Capture: SPACE</div>
+
+  <!-- Quick Language Selector Buttons -->
+  <div class="top-lang-bar" id="lang-bar">
+    <button type="button" class="lang-pill-btn" id="btn-lang-1">🇬🇧 English (1)</button>
+    <button type="button" class="lang-pill-btn" id="btn-lang-2">🇪🇸 Español (2)</button>
+  </div>
+
+  <!-- Floating Virtual Touch Controller -->
+  <div class="touch-ctrl-container">
+    <!-- D-Pad -->
+    <div class="dpad-grid">
+      <div></div>
+      <button type="button" class="touch-btn" id="btn-up" aria-label="Up">▲</button>
+      <div></div>
+      <button type="button" class="touch-btn" id="btn-left" aria-label="Left">◀</button>
+      <div></div>
+      <button type="button" class="touch-btn" id="btn-right" aria-label="Right">▶</button>
+      <div></div>
+      <button type="button" class="touch-btn" id="btn-down" aria-label="Down">▼</button>
+      <div></div>
+    </div>
+
+    <!-- Snap Button -->
+    <div class="action-group">
+      <button type="button" class="touch-btn btn-action" id="btn-space">
+        SNAP<br><span style="font-size:0.7em; opacity:0.85;">SPACE</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // --- Cross-platform device detection ---
+      // A device is treated as "touch" if it has a coarse pointer (finger, not mouse)
+      // OR exposes touch APIs. This is what decides whether the on-screen D-pad/SNAP
+      // button (mobile) or the keyboard hint (desktop) is shown.
+      function isLikelyTouchDevice() {
+        var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+        var hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints || 0) > 0;
+        return !!(coarse || hasTouch);
+      }
+
+      function applyDeviceClass() {
+        var touch = isLikelyTouchDevice();
+        document.documentElement.classList.toggle('is-touch-device', touch);
+        document.documentElement.classList.toggle('is-desktop-device', !touch);
+      }
+      applyDeviceClass();
+
+      // If someone plugs in a mouse on a touch device (or vice versa), keep it current
+      // without being noisy: re-check on the first real interaction of each kind.
+      window.addEventListener('pointerdown', function (e) {
+        if (e.pointerType === 'touch' || e.pointerType === 'mouse') applyDeviceClass();
+      }, { passive: true });
+
+      // Fade the desktop keyboard hint out after the person starts playing.
+      var keyHintFaded = false;
+      function fadeKeyHint() {
+        if (keyHintFaded) return;
+        keyHintFaded = true;
+        var hint = document.getElementById('desktop-key-hint');
+        if (hint) hint.classList.add('fade-out');
+      }
+      setTimeout(fadeKeyHint, 6000);
+
+      function sendKeyEvent(type, code, key, keyCode) {
+        const ev = new KeyboardEvent(type, {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          key: key,
+          code: code,
+          keyCode: keyCode,
+          which: keyCode
+        });
+
+        // 1. Dispatch directly on the canvas (where Kaboom game engine listens)
+        const canvas = document.getElementById('container');
+        if (canvas) {
+          canvas.dispatchEvent(ev);
+        }
+        // 2. Dispatch on document (where NASA intro handler listens)
+        document.dispatchEvent(ev);
+        // 3. Dispatch on window
+        window.dispatchEvent(ev);
+      }
+
+      function bindKey(elementId, code, key, keyCode, autoHideBar) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+
+        const press = (e) => {
+          if (e.cancelable) e.preventDefault();
+          sendKeyEvent('keydown', code, key, keyCode);
+          if (autoHideBar) {
+            const bar = document.getElementById('lang-bar');
+            if (bar) bar.style.display = 'none';
+          }
+        };
+        const release = (e) => {
+          if (e.cancelable) e.preventDefault();
+          sendKeyEvent('keyup', code, key, keyCode);
+        };
+
+        el.addEventListener('touchstart', press, { passive: false });
+        el.addEventListener('touchend', release, { passive: false });
+        el.addEventListener('touchcancel', release, { passive: false });
+        el.addEventListener('mousedown', press);
+        el.addEventListener('mouseup', release);
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+          fadeKeyHint();
+        }
+      });
+
+      // Movement & Snap
+      bindKey('btn-up', 'ArrowUp', 'ArrowUp', 38, false);
+      bindKey('btn-down', 'ArrowDown', 'ArrowDown', 40, false);
+      bindKey('btn-left', 'ArrowLeft', 'ArrowLeft', 37, false);
+      bindKey('btn-right', 'ArrowRight', 'ArrowRight', 39, false);
+      bindKey('btn-space', 'Space', ' ', 32, false);
+
+      // Language selection keys
+      bindKey('btn-lang-1', 'Digit1', '1', 49, true);
+      bindKey('btn-lang-2', 'Digit2', '2', 50, true);
+
+      // --- Fix: the game's own "Load Game" instructions panel (#rstDiv) is meant to
+      // fade out the moment gameplay begins, but it gets left behind on top of the
+      // canvas, making the game look like it never started even though it's running
+      // underneath. We watch for Space being processed (from keyboard OR the on-screen
+      // SNAP button) once the language has been chosen, and make sure that panel
+      // actually goes away.
+      function dismissIntroPanelIfStuck() {
+        var langDiv = document.getElementById('rstLangDiv');
+        if (langDiv) return; // still on the language screen, nothing to dismiss yet
+        var introDiv = document.getElementById('rstDiv');
+        if (!introDiv) return;
+        introDiv.style.transition = 'opacity 0.4s ease';
+        introDiv.style.opacity = '0';
+        introDiv.style.pointerEvents = 'none';
+        setTimeout(function () {
+          if (introDiv && introDiv.parentNode) introDiv.parentNode.removeChild(introDiv);
+        }, 400);
+      }
+      document.addEventListener('keydown', function (e) {
+        if (e.code === 'Space' || e.key === ' ') {
+          setTimeout(dismissIntroPanelIfStuck, 50);
+        }
+      });
+
+      // Tap language screen to choose English
+      document.addEventListener('click', function (e) {
+        const langDiv = document.getElementById('rstLangDiv');
+        if (langDiv && (e.target === langDiv || langDiv.contains(e.target))) {
+          sendKeyEvent('keydown', 'Digit1', '1', 49);
+          sendKeyEvent('keyup', 'Digit1', '1', 49);
+          const bar = document.getElementById('lang-bar');
+          if (bar) bar.style.display = 'none';
+        }
+
+        // Tap "Load Game" button or instructions to trigger Space & start
+        const btn = document.getElementById('rstButton');
+        if (btn && (e.target === btn || btn.contains(e.target))) {
+          sendKeyEvent('keydown', 'Space', ' ', 32);
+          setTimeout(() => sendKeyEvent('keyup', 'Space', ' ', 32), 50);
+        }
+      });
+
+      // Handle screen orientation & resize smoothly
+      function handleResize() {
+        const c = document.getElementById('container');
+        if (c) {
+          c.style.width = window.innerWidth + 'px';
+          c.style.height = window.innerHeight + 'px';
+        }
+      }
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('orientationchange', handleResize);
+      handleResize();
+    })();
+  </script>
+</body>
+</html>
