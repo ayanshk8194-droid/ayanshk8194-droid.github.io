@@ -44,13 +44,11 @@
     }
 
     /* Scale canvas down to 70% on mobile so text/gameplay elements look significantly smaller and controls sit cleanly around it */
-    @media (max-width: 900px) {
-      #container {
-        width: 70vw !important;
-        height: 70dvh !important;
-        top: 15dvh !important;
-        left: 15vw !important;
-      }
+    html.is-touch-device #container {
+      width: 70vw !important;
+      height: 70dvh !important;
+      top: 15dvh !important;
+      left: 15vw !important;
     }
 
     /* --- Responsive NASA UI Elements --- */
