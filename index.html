@@ -259,13 +259,27 @@
       font-size: clamp(14px, 3.5vw, 20px);
     }
 
-    /* Action Snap Button on Bottom Right */
+    /* Action Snap & Retry Buttons on Bottom Right */
     .action-group {
       display: flex;
       flex-direction: column;
       align-items: center;
+      gap: 8px;
       margin-right: env(safe-area-inset-right, 0);
       margin-bottom: 6px;
+    }
+    .btn-retry {
+      width: clamp(42px, 9vw, 54px);
+      height: clamp(42px, 9vw, 54px);
+      font-size: clamp(10px, 2.2vw, 12px);
+      text-align: center;
+      background: rgba(0, 200, 100, 0.35);
+      border-color: rgba(100, 255, 180, 0.6);
+      line-height: 1.1;
+    }
+    .btn-retry:active {
+      background: rgba(0, 220, 100, 0.9);
+      transform: scale(0.92);
     }
     .btn-action {
       width: var(--action-size);
@@ -309,7 +323,7 @@
   </style>
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔭</text></svg>">
-  <script defer src="app.bundle.js?v=4"></script>
+  <script defer src="app.bundle.js?v=5"></script>
 </head>
 <body>
   <canvas id="container"></canvas>
@@ -318,7 +332,7 @@
   <div class="portrait-hint">🔄 Rotate phone to Landscape for best view</div>
 
   <!-- Keyboard Controls Hint (desktop/mouse devices only) -->
-  <div class="desktop-key-hint" id="desktop-key-hint">Move: ← ↑ → ↓ &nbsp;&nbsp;|&nbsp;&nbsp; Capture: SPACE</div>
+  <div class="desktop-key-hint" id="desktop-key-hint">Move: ← ↑ → ↓ &nbsp;&nbsp;|&nbsp;&nbsp; Capture: SPACE &nbsp;&nbsp;|&nbsp;&nbsp; Retry: R</div>
 
   <!-- Quick Language Selector Buttons -->
   <div class="top-lang-bar" id="lang-bar">
@@ -341,8 +355,11 @@
       <div></div>
     </div>
 
-    <!-- Snap Button -->
+    <!-- Snap & Retry Buttons -->
     <div class="action-group">
+      <button type="button" class="touch-btn btn-retry" id="btn-retry" aria-label="Retry">
+        🔄<br><span style="font-size:0.7em;">RETRY</span>
+      </button>
       <button type="button" class="touch-btn btn-action" id="btn-space">
         SNAP<br><span style="font-size:0.7em; opacity:0.85;">SPACE</span>
       </button>
@@ -446,12 +463,13 @@
         }
       });
 
-      // Movement & Snap
+      // Movement, Snap & Retry
       bindKey('btn-up', 'ArrowUp', 'ArrowUp', 38, false);
       bindKey('btn-down', 'ArrowDown', 'ArrowDown', 40, false);
       bindKey('btn-left', 'ArrowLeft', 'ArrowLeft', 37, false);
       bindKey('btn-right', 'ArrowRight', 'ArrowRight', 39, false);
       bindKey('btn-space', 'Space', ' ', 32, false);
+      bindKey('btn-retry', 'KeyR', 'r', 82, false);
 
       // Language selection keys
       bindKey('btn-lang-1', 'Digit1', '1', 49, true);
