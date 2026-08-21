@@ -19,7 +19,28 @@
       -webkit-user-select: none;
       -webkit-touch-callout: none;
     }
-    
+
+    /* Touch-control sizing. NOTE: the game's internal render resolution is now
+       fixed at 1280x720 inside app.bundle.js (see the Re({width:1280,height:720,...})
+       call), instead of being derived from whatever the canvas's on-screen box
+       happened to measure at load. That was the actual mobile bug: every HUD
+       element in the game (score, stats, the ship, the intro screen) is positioned
+       with hardcoded pixel math against that internal resolution, so when the
+       canvas's box was small/irregular on a phone, HUD elements collided with
+       each other and with gameplay objects - no amount of CSS around the canvas
+       could fix internal layout math done in pixels the CSS never sees.
+       Now that the internal resolution is fixed and consistent everywhere, the
+       canvas can simply fill the screen (object-fit: contain below preserves the
+       16:9 aspect ratio and letterboxes automatically) and the controls just need
+       to float in the corners - no more fragile margin math shrinking the canvas
+       to "make room". */
+    :root {
+      --ctrl-cell: clamp(34px, 8vw, 48px);
+      --ctrl-gap: 4px;
+      --ctrl-pad: clamp(6px, 2vw, 16px);
+      --action-size: clamp(52px, 12vw, 72px);
+    }
+
     html, body {
       width: 100%;
       height: 100%;
@@ -32,23 +53,20 @@
       inset: 0;
     }
 
+    /* The canvas always fills the full viewport now. Its internal drawing
+       resolution is locked to 1280x720 (see app.bundle.js), so object-fit:contain
+       just letterboxes/pillarboxes it to fit any screen shape without ever
+       stretching or distorting the game, and without needing to reserve margin
+       space for the touch controls - they float on top instead (see below). */
     #container {
       display: block;
-      width: 100vw !important;
-      height: 100dvh !important;
-      height: 100vh !important;
+      width: 100vw;
+      height: 100dvh;
+      height: 100vh;
       position: fixed;
       top: 0;
       left: 0;
       object-fit: contain;
-    }
-
-    /* Scale canvas down to 70% on mobile so text/gameplay elements look significantly smaller and controls sit cleanly around it */
-    html.is-touch-device #container {
-      width: 70vw !important;
-      height: 70dvh !important;
-      top: 15dvh !important;
-      left: 15vw !important;
     }
 
     /* --- Responsive NASA UI Elements --- */
@@ -169,7 +187,7 @@
       z-index: 999999;
       justify-content: space-between;
       align-items: flex-end;
-      padding: clamp(4px, 1.5vw, 12px);
+      padding: var(--ctrl-pad);
       padding-bottom: max(env(safe-area-inset-bottom, 8px), 8px);
     }
     html.is-touch-device .touch-ctrl-container {
@@ -230,9 +248,9 @@
     /* D-Pad on Bottom Left */
     .dpad-grid {
       display: grid;
-      grid-template-columns: repeat(3, clamp(38px, 9vw, 55px));
-      grid-template-rows: repeat(3, clamp(38px, 9vw, 55px));
-      gap: 4px;
+      grid-template-columns: repeat(3, var(--ctrl-cell));
+      grid-template-rows: repeat(3, var(--ctrl-cell));
+      gap: var(--ctrl-gap);
       margin-left: env(safe-area-inset-left, 0);
     }
     .dpad-grid .touch-btn {
@@ -250,8 +268,8 @@
       margin-bottom: 6px;
     }
     .btn-action {
-      width: clamp(58px, 14vw, 82px);
-      height: clamp(58px, 14vw, 82px);
+      width: var(--action-size);
+      height: var(--action-size);
       font-size: clamp(11px, 2.8vw, 14px);
       text-align: center;
       background: rgba(255, 50, 50, 0.3);
@@ -462,8 +480,8 @@
         }
       });
 
-      // Tap language screen to choose English
-      document.addEventListener('click', function (e) {
+      // Tap language screen or instruction screen anywhere to progress & start game
+      function handleOverlayTap(e) {
         requestFullScreen();
         const langDiv = document.getElementById('rstLangDiv');
         if (langDiv && (e.target === langDiv || langDiv.contains(e.target))) {
@@ -473,25 +491,32 @@
           if (bar) bar.style.display = 'none';
         }
 
-        // Tap "Load Game" button or instructions to trigger Space & start
+        const introDiv = document.getElementById('rstDiv');
         const btn = document.getElementById('rstButton');
-        if (btn && (e.target === btn || btn.contains(e.target))) {
+        if (introDiv && (e.target === introDiv || introDiv.contains(e.target) || (btn && btn.contains(e.target)))) {
           sendKeyEvent('keydown', 'Space', ' ', 32);
           setTimeout(() => sendKeyEvent('keyup', 'Space', ' ', 32), 50);
-        }
-      });
-
-      // Handle screen orientation & resize smoothly
-      function handleResize() {
-        const c = document.getElementById('container');
-        if (c) {
-          c.style.width = window.innerWidth + 'px';
-          c.style.height = window.innerHeight + 'px';
+          dismissIntroPanelIfStuck();
         }
       }
-      window.addEventListener('resize', handleResize);
-      window.addEventListener('orientationchange', handleResize);
-      handleResize();
+
+      document.addEventListener('click', handleOverlayTap);
+      document.addEventListener('touchstart', function(e) {
+        const langDiv = document.getElementById('rstLangDiv');
+        const introDiv = document.getElementById('rstDiv');
+        if ((langDiv && (e.target === langDiv || langDiv.contains(e.target))) ||
+            (introDiv && (e.target === introDiv || introDiv.contains(e.target)))) {
+          handleOverlayTap(e);
+        }
+      }, { passive: true });
+
+      // Ask fullscreen to re-layout smoothly on rotation/resize. The canvas itself
+      // is sized purely by the #container CSS rule above (100vw/100dvh + object-fit:
+      // contain) - it does not need JS to push pixel dimensions into it, and doing so
+      // used to fight the CSS and reintroduce sizing bugs on resize/rotate.
+      window.addEventListener('orientationchange', function () {
+        setTimeout(requestFullScreen, 50);
+      });
     })();
   </script>
 </body>
