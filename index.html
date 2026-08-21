@@ -297,23 +297,27 @@
       pointer-events: none;
     }
 
-    /* Action Snap & Retry Buttons on Bottom Right */
+    /* Action Snap & Retry Buttons explicitly locked to Bottom Right */
     .action-group {
+      position: fixed;
+      bottom: max(env(safe-area-inset-bottom, 16px), 16px);
+      right: max(env(safe-area-inset-right, 16px), 16px);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      margin-right: env(safe-area-inset-right, 0);
-      margin-bottom: 6px;
+      gap: 10px;
+      z-index: 9999999;
+      pointer-events: auto;
     }
     .btn-retry {
-      width: clamp(42px, 9vw, 54px);
-      height: clamp(42px, 9vw, 54px);
+      width: clamp(44px, 9.5vw, 56px);
+      height: clamp(44px, 9.5vw, 56px);
       font-size: clamp(10px, 2.2vw, 12px);
       text-align: center;
-      background: rgba(0, 200, 100, 0.35);
-      border-color: rgba(100, 255, 180, 0.6);
+      background: rgba(0, 200, 100, 0.4);
+      border-color: rgba(100, 255, 180, 0.7);
       line-height: 1.1;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
     }
     .btn-retry:active {
       background: rgba(0, 220, 100, 0.9);
@@ -324,9 +328,10 @@
       height: var(--action-size);
       font-size: clamp(11px, 2.8vw, 14px);
       text-align: center;
-      background: rgba(255, 50, 50, 0.3);
-      border-color: rgba(255, 120, 120, 0.5);
+      background: rgba(255, 50, 50, 0.35);
+      border-color: rgba(255, 120, 120, 0.6);
       line-height: 1.15;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
     }
     .btn-action:active {
       background: rgba(255, 50, 50, 0.9);
@@ -361,7 +366,7 @@
   </style>
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔭</text></svg>">
-  <script defer src="app.bundle.js?v=7"></script>
+  <script defer src="app.bundle.js?v=8"></script>
 </head>
 <body>
   <canvas id="container"></canvas>
