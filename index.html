@@ -342,18 +342,20 @@
     .portrait-hint {
       display: none;
       position: fixed;
-      bottom: 12px;
+      top: 16px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      color: #ffeb3b;
-      font-family: system-ui, sans-serif;
-      font-size: 12px;
-      padding: 6px 14px;
-      border-radius: 15px;
+      background: rgba(0, 20, 50, 0.92);
+      border: 1.5px solid #00d2ff;
+      color: #ffffff;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(12px, 3vw, 14px);
+      padding: 8px 18px;
+      border-radius: 20px;
       z-index: 99999999;
       pointer-events: none;
+      box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
     }
 
     /* Only nudge people to rotate when they're actually on a touch device -
@@ -366,7 +368,7 @@
   </style>
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔭</text></svg>">
-  <script defer src="app.bundle.js?v=12"></script>
+  <script defer src="app.bundle.js?v=13"></script>
 </head>
 <body>
   <canvas id="container"></canvas>
@@ -410,12 +412,7 @@
       // OR exposes touch APIs. This is what decides whether the on-screen D-pad/SNAP
       // button (mobile) or the keyboard hint (desktop) is shown.
       function requestFullScreen() {
-        var doc = window.document;
-        var docEl = doc.documentElement;
-        var req = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-        if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement && req) {
-          try { req.call(docEl).catch(function(){}); } catch(e){}
-        }
+        // Disabled to prevent Chrome/Android from displaying invasive system notification toasts on tap
       }
 
       function isLikelyTouchDevice() {
