@@ -164,19 +164,33 @@
     }
 
     .lang-pill-btn {
-      background: rgba(0, 20, 60, 0.85);
-      border: 2px solid #00d2ff;
-      color: #fff;
+      background: rgba(0, 30, 70, 0.5);
+      border: 1.5px solid rgba(0, 210, 255, 0.4);
+      color: rgba(0, 255, 255, 0.7);
       font-family: system-ui, -apple-system, sans-serif;
       font-weight: 700;
       font-size: clamp(11px, 2.8vw, 14px);
-      padding: 8px 16px;
+      padding: 7px 16px;
       border-radius: 20px;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      opacity: 0.35;
+      transition: opacity 0.3s ease, transform 0.15s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .lang-pill-btn:hover,
+    .lang-pill-btn:focus {
+      opacity: 1;
+      background: rgba(0, 40, 90, 0.95);
+      border-color: #00ffff;
+      color: #00ffff;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
     }
 
     .lang-pill-btn:active {
+      opacity: 1;
       background: #00d2ff;
       color: #000;
       transform: scale(0.94);
@@ -722,8 +736,7 @@
 
   <!-- Quick Bottom Action Buttons (Leaderboard) -->
   <div class="top-lang-bar" id="lang-bar">
-    <button type="button" class="lang-pill-btn" id="btn-top-leaderboard"
-      style="border-color:#00ffff; color:#00ffff; background:rgba(0,40,90,0.85);">🏆 Leaderboard</button>
+    <button type="button" class="lang-pill-btn" id="btn-top-leaderboard">🏆 Leaderboard</button>
   </div>
 
   <!-- Floating Virtual Touch Controller -->
