@@ -365,9 +365,308 @@
         display: block;
       }
     }
+
+    /* --- Retro NASA Player Name Entry Overlay --- */
+    #playerNameDiv {
+      background-color: rgba(5, 11, 20, 0.95) !important;
+      position: fixed !important;
+      inset: 0 !important;
+      display: none;
+      align-items: center !important;
+      justify-content: center !important;
+      flex-direction: column !important;
+      color: #fff !important;
+      padding: 20px 24px !important;
+      z-index: 1005 !important;
+      overflow-y: auto !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      animation: fadeInNameCard 0.3s ease-out forwards;
+    }
+
+    @keyframes fadeInNameCard {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .name-card {
+      background: rgba(0, 20, 50, 0.85);
+      border: 2px solid #00d2ff;
+      border-radius: 16px;
+      padding: clamp(20px, 4vw, 36px);
+      max-width: 580px;
+      width: 90%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 0 30px rgba(0, 210, 255, 0.35), inset 0 0 15px rgba(0, 39, 107, 0.5);
+      text-align: center;
+    }
+
+    .name-title {
+      font-size: clamp(15px, 3.6vw, 22px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      color: #00d2ff !important;
+      margin-bottom: 14px !important;
+      text-shadow: 0 0 10px rgba(0, 210, 255, 0.6);
+      text-transform: uppercase;
+    }
+
+    .name-sub {
+      font-size: clamp(10px, 2.2vw, 12px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      color: #d0efff !important;
+      line-height: 1.6 !important;
+      margin-bottom: 22px !important;
+      opacity: 0.9;
+    }
+
+    .name-input-group {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: center;
+    }
+
+    #playerNameInput {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid #00d2ff;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-family: 'Press Start 2p', monospace, sans-serif;
+      font-size: clamp(12px, 3vw, 15px);
+      color: #ffffff;
+      text-align: center;
+      outline: none;
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    #playerNameInput:focus {
+      border-color: #00ffff;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.6), inset 0 0 10px rgba(0, 210, 255, 0.3);
+      background: rgba(0, 30, 70, 0.8);
+    }
+
+    #playerNameInput::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: clamp(9px, 2vw, 12px);
+    }
+
+    #btnProceedName {
+      font-size: clamp(13px, 3vw, 16px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      padding: 14px 32px !important;
+      background-color: #00276b !important;
+      color: #fff !important;
+      border: 2px solid #00d2ff !important;
+      border-radius: 12px !important;
+      cursor: pointer !important;
+      box-shadow: 0 4px 14px rgba(0, 210, 255, 0.4) !important;
+      transition: transform 0.1s ease, background 0.15s ease, box-shadow 0.15s ease;
+      margin-top: 8px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    #btnProceedName:hover, #btnProceedName:focus {
+      background-color: #003fa8 !important;
+      box-shadow: 0 0 20px rgba(0, 210, 255, 0.7) !important;
+    }
+
+    #btnProceedName:active {
+      transform: scale(0.96);
+      background-color: #00d2ff !important;
+      color: #000 !important;
+    }
+
+    /* Floating Player Badge HUD */
+    .player-badge {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      background: rgba(0, 20, 50, 0.85);
+      border: 1.5px solid #00d2ff;
+      color: #00d2ff;
+      font-family: 'Press Start 2p', monospace, sans-serif;
+      font-size: clamp(9px, 2vw, 12px);
+      padding: 7px 14px;
+      border-radius: 20px;
+      z-index: 999999;
+      pointer-events: none;
+      box-shadow: 0 0 12px rgba(0, 210, 255, 0.4);
+      display: none;
+    }
+
+    /* --- Retro NASA Supabase Leaderboard Overlay --- */
+    #leaderboardDiv {
+      background-color: rgba(5, 11, 20, 0.96) !important;
+      position: fixed !important;
+      inset: 0 !important;
+      display: none;
+      align-items: center !important;
+      justify-content: center !important;
+      flex-direction: column !important;
+      color: #fff !important;
+      padding: 16px 20px !important;
+      z-index: 1010 !important;
+      overflow-y: auto !important;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      animation: fadeInNameCard 0.3s ease-out forwards;
+    }
+
+    .leaderboard-card {
+      background: rgba(0, 20, 55, 0.9);
+      border: 2px solid #00d2ff;
+      border-radius: 16px;
+      padding: clamp(16px, 3.5vw, 28px);
+      max-width: 680px;
+      width: 95%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 0 35px rgba(0, 210, 255, 0.4), inset 0 0 20px rgba(0, 39, 107, 0.6);
+      text-align: center;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .leaderboard-title {
+      font-size: clamp(15px, 3.8vw, 22px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      color: #00ffff !important;
+      margin-bottom: 8px !important;
+      text-shadow: 0 0 12px rgba(0, 255, 255, 0.7);
+      text-transform: uppercase;
+    }
+
+    .leaderboard-sub {
+      font-size: clamp(9px, 2vw, 11px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      color: #b0e8ff !important;
+      margin-bottom: 16px !important;
+      opacity: 0.9;
+    }
+
+    /* Leaderboard Table */
+    .leaderboard-table-container {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1.5px solid rgba(0, 210, 255, 0.4);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+    }
+
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Press Start 2p', monospace, sans-serif;
+      font-size: clamp(9px, 2vw, 11px);
+    }
+
+    .leaderboard-table th {
+      background: rgba(0, 40, 90, 0.9);
+      color: #00d2ff;
+      padding: 10px 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1.5px solid #00d2ff;
+    }
+
+    .leaderboard-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid rgba(0, 210, 255, 0.15);
+      color: #e0f7ff;
+    }
+
+    .leaderboard-row:nth-child(even) {
+      background: rgba(0, 35, 75, 0.3);
+    }
+
+    .leaderboard-row.current-player {
+      background: rgba(0, 210, 255, 0.25) !important;
+      border-left: 3px solid #00ffff;
+      animation: pulsePlayerRow 1.8s infinite alternate;
+    }
+
+    @keyframes pulsePlayerRow {
+      from { box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.3); }
+      to { box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.8); }
+    }
+
+    .rank-medal {
+      font-size: 1.2em;
+    }
+
+    /* Loader Spinner */
+    .space-spinner-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 24px 0;
+    }
+
+    .space-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3.5px solid rgba(0, 210, 255, 0.2);
+      border-top: 3.5px solid #00ffff;
+      border-radius: 50%;
+      animation: spinSpace 0.8s linear infinite;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+    }
+
+    @keyframes spinSpace {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .leaderboard-btn-group {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-leaderboard-action {
+      font-size: clamp(10px, 2.4vw, 13px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      padding: 10px 20px !important;
+      background-color: #00276b !important;
+      color: #fff !important;
+      border: 2px solid #00d2ff !important;
+      border-radius: 10px !important;
+      cursor: pointer !important;
+      box-shadow: 0 4px 12px rgba(0, 210, 255, 0.3) !important;
+      transition: all 0.15s ease;
+    }
+
+    .btn-leaderboard-action:hover {
+      background-color: #0042b3 !important;
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.7) !important;
+    }
+
+    .btn-leaderboard-action:active {
+      transform: scale(0.95);
+      background-color: #00d2ff !important;
+      color: #000 !important;
+    }
+
+
   </style>
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔭</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="app.bundle.js?v=16"></script>
 </head>
 <body>
@@ -379,10 +678,9 @@
   <!-- Keyboard Controls Hint (desktop/mouse devices only) -->
   <div class="desktop-key-hint" id="desktop-key-hint">Move: ← ↑ → ↓ &nbsp;&nbsp;|&nbsp;&nbsp; Capture: SPACE &nbsp;&nbsp;|&nbsp;&nbsp; Retry: R</div>
 
-  <!-- Quick Language Selector Buttons -->
+  <!-- Quick Top Action Buttons (Leaderboard) -->
   <div class="top-lang-bar" id="lang-bar">
-    <button type="button" class="lang-pill-btn" id="btn-lang-1">🇬🇧 English (1)</button>
-    <button type="button" class="lang-pill-btn" id="btn-lang-2">🇪🇸 Español (2)</button>
+    <button type="button" class="lang-pill-btn" id="btn-top-leaderboard" style="border-color:#00ffff; color:#00ffff; background:rgba(0,40,90,0.85);">🏆 Leaderboard</button>
   </div>
 
   <!-- Floating Virtual Touch Controller -->
@@ -402,6 +700,58 @@
       <button type="button" class="touch-btn btn-action" id="btn-space">
         SNAP<br><span style="font-size:0.7em; opacity:0.85;">SPACE</span>
       </button>
+    </div>
+  </div>
+
+  <!-- Player Badge Floating HUD -->
+  <div id="playerBadge" class="player-badge">🧑‍🚀 OBSERVER: COMMANDER</div>
+
+  <!-- Player Name Entry Overlay (between Load Game and Roman Nancy Observer) -->
+  <div id="playerNameDiv">
+    <div class="name-card">
+      <div class="name-title">🚀 OBSERVER REGISTRATION</div>
+      <div class="name-sub">IDENTIFY YOURSELF BEFORE COMMANDING THE NANCY GRACE ROMAN SPACE TELESCOPE:</div>
+      <div class="name-input-group">
+        <input type="text" id="playerNameInput" maxlength="20" placeholder="ENTER YOUR NAME..." autocomplete="off" spellcheck="false" />
+        <button type="button" id="btnProceedName">PROCEED ▶</button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Supabase Leaderboard Overlay -->
+  <div id="leaderboardDiv">
+    <div class="leaderboard-card">
+      <div class="leaderboard-title">🏆 OBSERVER LEADERBOARD</div>
+      <div class="leaderboard-sub">TOP COMMANDERS OF THE ROMAN SPACE TELESCOPE</div>
+      
+      <!-- Loader Spinner -->
+      <div id="leaderboardLoader" class="space-spinner-container">
+        <div class="space-spinner"></div>
+        <div style="font-family:'Press Start 2p'; font-size:10px; color:#00d2ff; margin-top:8px;">SYNCHRONIZING WITH SUPABASE...</div>
+      </div>
+
+      <!-- Leaderboard Table -->
+      <div id="leaderboardTableContainer" class="leaderboard-table-container" style="display:none;">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>RANK</th>
+              <th>PILOT / STUDENT</th>
+              <th>SCORE</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardTbody">
+            <!-- Dynamic Rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="leaderboard-btn-group">
+        <button type="button" class="btn-leaderboard-action" id="btnReplayGame">🚀 REPLAY MISSION</button>
+        <button type="button" class="btn-leaderboard-action" id="btnCloseLeaderboard">❌ CLOSE</button>
+      </div>
     </div>
   </div>
 
@@ -633,19 +983,111 @@
         window.addEventListener('touchcancel', onJoystickTouchEnd, { passive: false });
       }
 
-      // Language selection keys
-      bindKey('btn-lang-1', 'Digit1', '1', 49, true);
-      bindKey('btn-lang-2', 'Digit2', '2', 50, true);
+      // Auto-select English language as default on launch
+      function autoSelectEnglish() {
+        var attempts = 0;
+        var interval = setInterval(function () {
+          attempts++;
+          var langDiv = document.getElementById('rstLangDiv');
+          if (langDiv) {
+            sendKeyEvent('keydown', 'Digit1', '1', 49);
+            setTimeout(function () {
+              sendKeyEvent('keyup', 'Digit1', '1', 49);
+            }, 50);
+            clearInterval(interval);
+          } else if (attempts > 60) {
+            clearInterval(interval);
+          }
+        }, 50);
+      }
+      autoSelectEnglish();
+
+      // --- Player Name Entry & Game Flow Integration ---
+      let playerHasEnteredName = false;
+
+      const playerNameDiv = document.getElementById('playerNameDiv');
+      const playerNameInput = document.getElementById('playerNameInput');
+      const btnProceedName = document.getElementById('btnProceedName');
+      const playerBadge = document.getElementById('playerBadge');
+
+      // Pre-fill existing name if saved
+      if (playerNameInput) {
+        const savedName = localStorage.getItem('roman_player_name');
+        if (savedName) playerNameInput.value = savedName;
+
+        // Isolate typing in input box so Space key doesn't trigger Kaboom game actions
+        ['keydown', 'keyup', 'keypress'].forEach(evt => {
+          playerNameInput.addEventListener(evt, function(e) {
+            e.stopPropagation();
+            if (evt === 'keydown' && e.key === 'Enter') {
+              e.preventDefault();
+              submitPlayerName();
+            }
+          });
+        });
+      }
+
+      function showPlayerNameEntry() {
+        dismissIntroPanelIfStuck();
+        if (playerNameDiv) {
+          playerNameDiv.style.display = 'flex';
+          setTimeout(() => {
+            if (playerNameInput) {
+              playerNameInput.focus();
+              playerNameInput.select();
+            }
+          }, 100);
+        }
+      }
+
+      function submitPlayerName() {
+        const rawName = playerNameInput ? playerNameInput.value : '';
+        let cleanName = (rawName || '').trim() || 'COMMANDER';
+        cleanName = cleanName.toUpperCase().slice(0, 20);
+
+        window.playerName = cleanName;
+        try { localStorage.setItem('roman_player_name', cleanName); } catch(e){}
+
+        if (playerBadge) {
+          playerBadge.innerText = '🧑‍🚀 OBSERVER: ' + cleanName;
+          playerBadge.style.display = 'block';
+        }
+
+        if (playerNameDiv) {
+          playerNameDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          playerNameDiv.style.opacity = '0';
+          playerNameDiv.style.transform = 'scale(0.95)';
+          setTimeout(() => {
+            playerNameDiv.style.display = 'none';
+          }, 300);
+        }
+
+        playerHasEnteredName = true;
+
+        // Proceed to Roman Nancy Observer mission
+        sendKeyEvent('keydown', 'Space', ' ', 32);
+        setTimeout(() => sendKeyEvent('keyup', 'Space', ' ', 32), 50);
+      }
+
+      if (btnProceedName) {
+        btnProceedName.addEventListener('click', function(e) {
+          e.stopPropagation();
+          submitPlayerName();
+        });
+        btnProceedName.addEventListener('touchstart', function(e) {
+          e.stopPropagation();
+          submitPlayerName();
+        }, { passive: true });
+      }
 
       // --- Fix: the game's own "Load Game" instructions panel (#rstDiv) is meant to
-      // fade out the moment gameplay begins, but it gets left behind on top of the
-      // canvas, making the game look like it never started even though it's running
-      // underneath. We watch for Space being processed (from keyboard OR the on-screen
-      // SNAP button) once the language has been chosen, and make sure that panel
-      // actually goes away.
+      // fade out the moment gameplay begins.
       function dismissIntroPanelIfStuck() {
         var langDiv = document.getElementById('rstLangDiv');
-        if (langDiv) return; // still on the language screen, nothing to dismiss yet
+        if (langDiv) {
+          sendKeyEvent('keydown', 'Digit1', '1', 49);
+          sendKeyEvent('keyup', 'Digit1', '1', 49);
+        }
         var introDiv = document.getElementById('rstDiv');
         if (!introDiv) return;
         introDiv.style.transition = 'opacity 0.4s ease';
@@ -655,26 +1097,43 @@
           if (introDiv && introDiv.parentNode) introDiv.parentNode.removeChild(introDiv);
         }, 400);
       }
+
+      // Intercept keydown for Space when on Load Game screen (#rstDiv)
       document.addEventListener('keydown', function (e) {
         if (e.code === 'Space' || e.key === ' ') {
+          var langDiv = document.getElementById('rstLangDiv');
+          if (langDiv) {
+            sendKeyEvent('keydown', 'Digit1', '1', 49);
+            sendKeyEvent('keyup', 'Digit1', '1', 49);
+          }
+          var introDiv = document.getElementById('rstDiv');
+          if (introDiv && !playerHasEnteredName) {
+            e.stopPropagation();
+            showPlayerNameEntry();
+            return;
+          }
           setTimeout(dismissIntroPanelIfStuck, 50);
         }
-      });
+      }, true);
 
-      // Tap language screen or instruction screen anywhere to progress & start game
+      // Tap language screen or instruction screen ("Load Game") anywhere to progress
       function handleOverlayTap(e) {
         requestFullScreen();
         const langDiv = document.getElementById('rstLangDiv');
-        if (langDiv && (e.target === langDiv || langDiv.contains(e.target))) {
+        if (langDiv) {
           sendKeyEvent('keydown', 'Digit1', '1', 49);
           sendKeyEvent('keyup', 'Digit1', '1', 49);
-          const bar = document.getElementById('lang-bar');
-          if (bar) bar.style.display = 'none';
+          return;
         }
 
         const introDiv = document.getElementById('rstDiv');
         const btn = document.getElementById('rstButton');
         if (introDiv && (e.target === introDiv || introDiv.contains(e.target) || (btn && btn.contains(e.target)))) {
+          if (!playerHasEnteredName) {
+            e.stopPropagation();
+            showPlayerNameEntry();
+            return;
+          }
           sendKeyEvent('keydown', 'Space', ' ', 32);
           setTimeout(() => sendKeyEvent('keyup', 'Space', ' ', 32), 50);
           dismissIntroPanelIfStuck();
@@ -691,10 +1150,201 @@
         }
       }, { passive: true });
 
-      // Ask fullscreen to re-layout smoothly on rotation/resize. The canvas itself
-      // is sized purely by the #container CSS rule above (100vw/100dvh + object-fit:
-      // contain) - it does not need JS to push pixel dimensions into it, and doing so
-      // used to fight the CSS and reintroduce sizing bugs on resize/rotate.
+      // --- Supabase Leaderboard Client Integration ---
+      const SUPABASE_URL = 'https://xjgcseovpxeplsnvfmbf.supabase.co';
+      const SUPABASE_ANON_KEY = 'sb_publishable_Deb4e3nHaKnWOgMzrwMCMA_0jbbMLVj';
+
+      let supabaseClient = null;
+      if (window.supabase && window.supabase.createClient && SUPABASE_URL && SUPABASE_ANON_KEY) {
+        try {
+          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch(e) {
+          console.warn('Supabase client initialization fallback:', e);
+        }
+      }
+
+      let cachedLeaderboardData = [];
+
+      // Pre-fetch scores in background for instant loading when game finishes
+      async function prefetchLeaderboard() {
+        if (!supabaseClient) {
+          cachedLeaderboardData = getLocalLeaderboard();
+          return;
+        }
+        try {
+          const { data, error } = await supabaseClient
+            .from('leaderboard')
+            .select('player_name, score, created_at')
+            .order('score', { ascending: false })
+            .limit(10);
+          
+          if (!error && Array.isArray(data) && data.length > 0) {
+            cachedLeaderboardData = data;
+          } else {
+            cachedLeaderboardData = getLocalLeaderboard();
+          }
+        } catch (err) {
+          console.warn('Error pre-fetching Supabase leaderboard:', err);
+          cachedLeaderboardData = getLocalLeaderboard();
+        }
+      }
+      prefetchLeaderboard();
+
+      function getLocalLeaderboard() {
+        try {
+          const stored = localStorage.getItem('roman_local_leaderboard');
+          if (stored) return JSON.parse(stored);
+        } catch(e){}
+        return [
+          { player_name: 'COMMANDER NOVA', score: 540 },
+          { player_name: 'CADET STELLA', score: 480 },
+          { player_name: 'ASTRO ALEX', score: 410 },
+          { player_name: 'GALAXY PILOT', score: 350 },
+          { player_name: 'ORBITER SAM', score: 290 }
+        ];
+      }
+
+      function saveLocalScore(name, score) {
+        try {
+          let list = getLocalLeaderboard();
+          list.push({ player_name: name, score: score, created_at: new Date().toISOString() });
+          list.sort((a, b) => b.score - a.score);
+          list = list.slice(0, 10);
+          localStorage.setItem('roman_local_leaderboard', JSON.stringify(list));
+          return list;
+        } catch(e) { return cachedLeaderboardData; }
+      }
+
+      async function submitScoreToSupabase(playerName, score) {
+        const name = (playerName || window.playerName || 'COMMANDER').toUpperCase().trim();
+        saveLocalScore(name, score);
+
+        if (supabaseClient) {
+          try {
+            await supabaseClient
+              .from('leaderboard')
+              .insert([{ player_name: name, score: score }]);
+          } catch(err) {
+            console.warn('Supabase insert score error:', err);
+          }
+        }
+        await prefetchLeaderboard();
+      }
+
+      function renderLeaderboardTable(data, currentPlayerName, currentScore) {
+        const tbody = document.getElementById('leaderboardTbody');
+        if (!tbody) return;
+
+        let list = Array.isArray(data) ? [...data] : [];
+        if (typeof currentScore === 'number' && currentPlayerName) {
+          const exists = list.some(item => item.player_name === currentPlayerName && item.score === currentScore);
+          if (!exists) {
+            list.push({ player_name: currentPlayerName, score: currentScore, isCurrent: true });
+            list.sort((a, b) => b.score - a.score);
+            list = list.slice(0, 10);
+          }
+        }
+
+        const medals = ['🥇', '🥈', '🥉'];
+        tbody.innerHTML = list.map((item, index) => {
+          const isCurrent = (item.isCurrent || (item.player_name === currentPlayerName && item.score === currentScore));
+          const rankDisplay = medals[index] ? `<span class="rank-medal">${medals[index]}</span>` : `#${index + 1}`;
+          const rowClass = `leaderboard-row ${isCurrent ? 'current-player' : ''}`;
+          
+          return `
+            <tr class="${rowClass}">
+              <td>${rankDisplay}</td>
+              <td style="text-transform:uppercase;">${item.player_name || 'ANONYMOUS'} ${isCurrent ? '⭐ (YOU)' : ''}</td>
+              <td style="color:#00ffff; font-weight:bold;">${item.score} PTS</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      async function openLeaderboardModal(latestScore = null) {
+        const leaderboardDiv = document.getElementById('leaderboardDiv');
+        const loader = document.getElementById('leaderboardLoader');
+        const tableContainer = document.getElementById('leaderboardTableContainer');
+
+        if (!leaderboardDiv) return;
+
+        leaderboardDiv.style.display = 'flex';
+        leaderboardDiv.style.opacity = '1';
+        leaderboardDiv.style.transform = 'scale(1)';
+
+        if (loader) loader.style.display = 'flex';
+        if (tableContainer) tableContainer.style.display = 'none';
+
+        const currentPlayer = (window.playerName || localStorage.getItem('roman_player_name') || 'COMMANDER').toUpperCase();
+
+        if (cachedLeaderboardData.length > 0) {
+          renderLeaderboardTable(cachedLeaderboardData, currentPlayer, latestScore);
+          if (loader) loader.style.display = 'none';
+          if (tableContainer) tableContainer.style.display = 'block';
+        }
+
+        await prefetchLeaderboard();
+        renderLeaderboardTable(cachedLeaderboardData, currentPlayer, latestScore);
+
+        if (loader) loader.style.display = 'none';
+        if (tableContainer) tableContainer.style.display = 'block';
+      }
+
+      function closeLeaderboardModal() {
+        const leaderboardDiv = document.getElementById('leaderboardDiv');
+        if (leaderboardDiv) {
+          leaderboardDiv.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+          leaderboardDiv.style.opacity = '0';
+          leaderboardDiv.style.transform = 'scale(0.95)';
+          setTimeout(() => {
+            leaderboardDiv.style.display = 'none';
+          }, 250);
+        }
+      }
+
+      // Hook called directly when game finishes
+      window.onGameEnd = function(score) {
+        console.log('🎮 Mission Complete! Final Score:', score);
+        const player = window.playerName || localStorage.getItem('roman_player_name') || 'COMMANDER';
+        submitScoreToSupabase(player, score);
+        
+        setTimeout(() => {
+          openLeaderboardModal(score);
+        }, 1200);
+      };
+
+      // Leaderboard Top Bar Button
+      const btnTopLeaderboard = document.getElementById('btn-top-leaderboard');
+      if (btnTopLeaderboard) {
+        btnTopLeaderboard.addEventListener('click', function(e) {
+          e.stopPropagation();
+          openLeaderboardModal();
+        });
+      }
+
+      // Close Button
+      const btnCloseLeaderboard = document.getElementById('btnCloseLeaderboard');
+      if (btnCloseLeaderboard) {
+        btnCloseLeaderboard.addEventListener('click', function(e) {
+          e.stopPropagation();
+          closeLeaderboardModal();
+        });
+      }
+
+      // Replay Mission Button
+      const btnReplayGame = document.getElementById('btnReplayGame');
+      if (btnReplayGame) {
+        btnReplayGame.addEventListener('click', function(e) {
+          e.stopPropagation();
+          closeLeaderboardModal();
+          sendKeyEvent('keydown', 'KeyR', 'r', 82);
+          setTimeout(() => sendKeyEvent('keyup', 'KeyR', 'r', 82), 50);
+        });
+      }
+
+
+
+      // Ask fullscreen to re-layout smoothly on rotation/resize.
       window.addEventListener('orientationchange', function () {
         setTimeout(requestFullScreen, 50);
       });
