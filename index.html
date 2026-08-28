@@ -499,6 +499,31 @@
       font-size: clamp(9px, 2vw, 12px);
     }
 
+    #playerNameInput.input-error {
+      border-color: #ff3366 !important;
+      box-shadow: 0 0 22px rgba(255, 51, 102, 0.8), inset 0 0 10px rgba(255, 51, 102, 0.4) !important;
+      background: rgba(40, 0, 15, 0.85) !important;
+      animation: shakeNameInput 0.35s ease-in-out;
+    }
+
+    .name-error-msg {
+      display: none;
+      font-family: 'Press Start 2p', monospace, sans-serif;
+      font-size: clamp(9px, 2vw, 11px);
+      color: #ff3366;
+      text-shadow: 0 0 10px rgba(255, 51, 102, 0.8);
+      margin-top: 2px;
+      margin-bottom: 2px;
+      line-height: 1.4;
+      animation: shakeNameInput 0.35s ease-in-out;
+    }
+
+    @keyframes shakeNameInput {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-7px); }
+      40%, 80% { transform: translateX(7px); }
+    }
+
     #btnProceedName {
       font-size: clamp(13px, 3vw, 16px) !important;
       font-family: 'Press Start 2p', monospace, sans-serif !important;
@@ -771,6 +796,7 @@
       <div class="name-input-group">
         <input type="text" id="playerNameInput" maxlength="20" placeholder="ENTER YOUR NAME..." autocomplete="off"
           spellcheck="false" />
+        <div id="nameErrorMsg" class="name-error-msg">⚠️ PLEASE ENTER YOUR NAME TO PROCEED!</div>
         <button type="button" id="btnProceedName">PROCEED ▶</button>
       </div>
     </div>
@@ -1073,6 +1099,15 @@
         const savedName = localStorage.getItem('roman_player_name');
         if (savedName) playerNameInput.value = savedName;
 
+        // Clear error state on input
+        playerNameInput.addEventListener('input', function () {
+          if (playerNameInput.value.trim() !== '') {
+            playerNameInput.classList.remove('input-error');
+            const errorMsg = document.getElementById('nameErrorMsg');
+            if (errorMsg) errorMsg.style.display = 'none';
+          }
+        });
+
         // Isolate typing in input box so Space key doesn't trigger Kaboom game actions
         ['keydown', 'keyup', 'keypress'].forEach(evt => {
           playerNameInput.addEventListener(evt, function (e) {
@@ -1100,8 +1135,21 @@
 
       function submitPlayerName() {
         const rawName = playerNameInput ? playerNameInput.value : '';
-        let cleanName = (rawName || '').trim() || 'COMMANDER';
-        cleanName = cleanName.toUpperCase().slice(0, 20);
+        const cleanName = (rawName || '').trim().toUpperCase().slice(0, 20);
+        const nameErrorMsg = document.getElementById('nameErrorMsg');
+
+        // Require name before proceeding
+        if (!cleanName) {
+          if (nameErrorMsg) nameErrorMsg.style.display = 'block';
+          if (playerNameInput) {
+            playerNameInput.classList.add('input-error');
+            playerNameInput.focus();
+          }
+          return false;
+        }
+
+        if (nameErrorMsg) nameErrorMsg.style.display = 'none';
+        if (playerNameInput) playerNameInput.classList.remove('input-error');
 
         window.playerName = cleanName;
         try { localStorage.setItem('roman_player_name', cleanName); } catch (e) { }
