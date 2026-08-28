@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#000000">
   <title>Roman Space Observer - Mobile Touch Edition</title>
-  
+
   <style>
     * {
       box-sizing: border-box;
@@ -41,12 +43,14 @@
       --action-size: clamp(52px, 12vw, 72px);
     }
 
-    html, body {
+    html,
+    body {
       width: 100%;
       height: 100%;
       height: 100dvh;
       overflow: hidden;
-      background-color: #050b14; /* Deep space blue to blend with letterboxing */
+      background-color: #050b14;
+      /* Deep space blue to blend with letterboxing */
       touch-action: none;
       overscroll-behavior: none;
       position: fixed;
@@ -140,16 +144,17 @@
       box-shadow: 0 4px 12px rgba(0, 210, 255, 0.3) !important;
       text-shadow: none !important;
     }
+
     #rstButton:active {
       transform: scale(0.95);
       background-color: #00d2ff !important;
       color: #000 !important;
     }
 
-    /* --- Top Language Selector Quick Bar --- */
+    /* --- Bottom Action Bar (Leaderboard) --- */
     .top-lang-bar {
       position: fixed;
-      top: 10px;
+      bottom: max(env(safe-area-inset-bottom, 16px), 16px);
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -157,6 +162,7 @@
       z-index: 9999999;
       pointer-events: auto;
     }
+
     .lang-pill-btn {
       background: rgba(0, 20, 60, 0.85);
       border: 2px solid #00d2ff;
@@ -169,6 +175,7 @@
       cursor: pointer;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     }
+
     .lang-pill-btn:active {
       background: #00d2ff;
       color: #000;
@@ -184,12 +191,13 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
-      z-index: 999999;
+      z-index: 99999;
       justify-content: space-between;
       align-items: flex-end;
       padding: var(--ctrl-pad);
       padding-bottom: max(env(safe-area-inset-bottom, 8px), 8px);
     }
+
     html.is-touch-device .touch-ctrl-container {
       display: flex;
     }
@@ -198,7 +206,7 @@
     .desktop-key-hint {
       display: none;
       position: fixed;
-      bottom: 16px;
+      bottom: 68px;
       left: 50%;
       transform: translateX(-50%);
       background: rgba(0, 0, 0, 0.7);
@@ -214,9 +222,11 @@
       opacity: 1;
       transition: opacity 0.6s ease;
     }
+
     .desktop-key-hint.fade-out {
       opacity: 0;
     }
+
     html.is-desktop-device .desktop-key-hint {
       display: block;
     }
@@ -240,6 +250,7 @@
       cursor: pointer;
       outline: none;
     }
+
     .touch-btn:active {
       background: rgba(0, 200, 255, 0.7);
       transform: scale(0.92);
@@ -258,6 +269,7 @@
       -webkit-user-select: none;
       z-index: 999999;
     }
+
     .joystick-base {
       position: fixed;
       width: 110px;
@@ -278,11 +290,13 @@
       bottom: 16px;
       left: 75px;
     }
+
     .joystick-base.active {
       opacity: 1;
       border-color: rgba(0, 230, 255, 0.9);
       box-shadow: 0 0 25px rgba(0, 220, 255, 0.6), inset 0 0 15px rgba(0, 200, 255, 0.5);
     }
+
     .joystick-knob {
       width: 48px;
       height: 48px;
@@ -301,7 +315,7 @@
     .action-group {
       position: fixed;
       bottom: max(env(safe-area-inset-bottom, 16px), 16px);
-      right: max(env(safe-area-inset-right, 16px), 16px);
+      right: calc(max(env(safe-area-inset-right, 16px), 16px) + 60px);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -309,6 +323,7 @@
       z-index: 9999999;
       pointer-events: auto;
     }
+
     .btn-retry {
       width: clamp(44px, 9.5vw, 56px);
       height: clamp(44px, 9.5vw, 56px);
@@ -318,21 +333,26 @@
       border-color: rgba(100, 255, 180, 0.7);
       line-height: 1.1;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+
+      transform: translate(35px, -5px);
     }
+
     .btn-retry:active {
       background: rgba(0, 220, 100, 0.9);
-      transform: scale(0.92);
+      transform: translate(35px, -5px) scale(0.92);
     }
+
     .btn-action {
-      width: var(--action-size);
-      height: var(--action-size);
-      font-size: clamp(11px, 2.8vw, 14px);
+      width: 100px;
+      height: 100px;
+      font-size: 14px;
       text-align: center;
       background: rgba(255, 50, 50, 0.35);
       border-color: rgba(255, 120, 120, 0.6);
       line-height: 1.15;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
     }
+
     .btn-action:active {
       background: rgba(255, 50, 50, 0.9);
       transform: scale(0.92);
@@ -385,8 +405,15 @@
     }
 
     @keyframes fadeInNameCard {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
 
     .name-card {
@@ -474,7 +501,8 @@
       max-width: 320px;
     }
 
-    #btnProceedName:hover, #btnProceedName:focus {
+    #btnProceedName:hover,
+    #btnProceedName:focus {
       background-color: #003fa8 !important;
       box-shadow: 0 0 20px rgba(0, 210, 255, 0.7) !important;
     }
@@ -505,7 +533,7 @@
 
     /* --- Retro NASA Supabase Leaderboard Overlay --- */
     #leaderboardDiv {
-      background-color: rgba(5, 11, 20, 0.96) !important;
+      background-color: rgba(20, 14, 5, 0.96) !important;
       position: fixed !important;
       inset: 0 !important;
       display: none;
@@ -519,6 +547,8 @@
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       animation: fadeInNameCard 0.3s ease-out forwards;
+      
+
     }
 
     .leaderboard-card {
@@ -598,8 +628,13 @@
     }
 
     @keyframes pulsePlayerRow {
-      from { box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.3); }
-      to { box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.8); }
+      from {
+        box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.3);
+      }
+
+      to {
+        box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.8);
+      }
     }
 
     .rank-medal {
@@ -626,8 +661,13 @@
     }
 
     @keyframes spinSpace {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     .leaderboard-btn-group {
@@ -636,6 +676,7 @@
       width: 100%;
       justify-content: center;
       flex-wrap: wrap;
+      
     }
 
     .btn-leaderboard-action {
@@ -661,14 +702,14 @@
       background-color: #00d2ff !important;
       color: #000 !important;
     }
-
-
   </style>
 
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔭</text></svg>">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔭</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="app.bundle.js?v=16"></script>
 </head>
+
 <body>
   <canvas id="container"></canvas>
 
@@ -676,11 +717,13 @@
   <div class="portrait-hint">🔄 Rotate phone to Landscape for best view</div>
 
   <!-- Keyboard Controls Hint (desktop/mouse devices only) -->
-  <div class="desktop-key-hint" id="desktop-key-hint">Move: ← ↑ → ↓ &nbsp;&nbsp;|&nbsp;&nbsp; Capture: SPACE &nbsp;&nbsp;|&nbsp;&nbsp; Retry: R</div>
+  <div class="desktop-key-hint" id="desktop-key-hint">Move: ← ↑ → ↓ &nbsp;&nbsp;|&nbsp;&nbsp; Capture: SPACE
+    &nbsp;&nbsp;|&nbsp;&nbsp; Retry: R</div>
 
-  <!-- Quick Top Action Buttons (Leaderboard) -->
+  <!-- Quick Bottom Action Buttons (Leaderboard) -->
   <div class="top-lang-bar" id="lang-bar">
-    <button type="button" class="lang-pill-btn" id="btn-top-leaderboard" style="border-color:#00ffff; color:#00ffff; background:rgba(0,40,90,0.85);">🏆 Leaderboard</button>
+    <button type="button" class="lang-pill-btn" id="btn-top-leaderboard"
+      style="border-color:#00ffff; color:#00ffff; background:rgba(0,40,90,0.85);">🏆 Leaderboard</button>
   </div>
 
   <!-- Floating Virtual Touch Controller -->
@@ -694,17 +737,18 @@
 
     <!-- Snap & Retry Buttons -->
     <div class="action-group">
-      <button type="button" class="touch-btn btn-retry" id="btn-retry" aria-label="Retry">
-        🔄<br><span style="font-size:0.7em;">RETRY</span>
-      </button>
       <button type="button" class="touch-btn btn-action" id="btn-space">
         SNAP<br><span style="font-size:0.7em; opacity:0.85;">SPACE</span>
       </button>
+      <button type="button" class="touch-btn btn-retry" id="btn-retry" aria-label="Retry">
+        🔄<br><span style="font-size:0.7em;">RETRY</span>
+      </button>
+
     </div>
   </div>
 
   <!-- Player Badge Floating HUD -->
-  <div id="playerBadge" class="player-badge">🧑‍🚀 OBSERVER: COMMANDER</div>
+
 
   <!-- Player Name Entry Overlay (between Load Game and Roman Nancy Observer) -->
   <div id="playerNameDiv">
@@ -712,7 +756,8 @@
       <div class="name-title">🚀 OBSERVER REGISTRATION</div>
       <div class="name-sub">IDENTIFY YOURSELF BEFORE COMMANDING THE NANCY GRACE ROMAN SPACE TELESCOPE:</div>
       <div class="name-input-group">
-        <input type="text" id="playerNameInput" maxlength="20" placeholder="ENTER YOUR NAME..." autocomplete="off" spellcheck="false" />
+        <input type="text" id="playerNameInput" maxlength="20" placeholder="ENTER YOUR NAME..." autocomplete="off"
+          spellcheck="false" />
         <button type="button" id="btnProceedName">PROCEED ▶</button>
       </div>
     </div>
@@ -725,11 +770,12 @@
     <div class="leaderboard-card">
       <div class="leaderboard-title">🏆 OBSERVER LEADERBOARD</div>
       <div class="leaderboard-sub">TOP COMMANDERS OF THE ROMAN SPACE TELESCOPE</div>
-      
+
       <!-- Loader Spinner -->
       <div id="leaderboardLoader" class="space-spinner-container">
         <div class="space-spinner"></div>
-        <div style="font-family:'Press Start 2p'; font-size:10px; color:#00d2ff; margin-top:8px;">SYNCHRONIZING WITH SUPABASE...</div>
+        <div style="font-family:'Press Start 2p'; font-size:10px; color:#00d2ff; margin-top:8px;">SYNCHRONIZING WITH
+          SUPABASE...</div>
       </div>
 
       <!-- Leaderboard Table -->
@@ -771,11 +817,11 @@
           try {
             var p = req.call(docEl);
             if (p && p.then) {
-              p.then(function() { hasRequestedFullScreen = true; }).catch(function(){});
+              p.then(function () { hasRequestedFullScreen = true; }).catch(function () { });
             } else {
               hasRequestedFullScreen = true;
             }
-          } catch(e){}
+          } catch (e) { }
         }
       }
 
@@ -1017,7 +1063,7 @@
 
         // Isolate typing in input box so Space key doesn't trigger Kaboom game actions
         ['keydown', 'keyup', 'keypress'].forEach(evt => {
-          playerNameInput.addEventListener(evt, function(e) {
+          playerNameInput.addEventListener(evt, function (e) {
             e.stopPropagation();
             if (evt === 'keydown' && e.key === 'Enter') {
               e.preventDefault();
@@ -1046,7 +1092,7 @@
         cleanName = cleanName.toUpperCase().slice(0, 20);
 
         window.playerName = cleanName;
-        try { localStorage.setItem('roman_player_name', cleanName); } catch(e){}
+        try { localStorage.setItem('roman_player_name', cleanName); } catch (e) { }
 
         if (playerBadge) {
           playerBadge.innerText = '🧑‍🚀 OBSERVER: ' + cleanName;
@@ -1070,11 +1116,11 @@
       }
 
       if (btnProceedName) {
-        btnProceedName.addEventListener('click', function(e) {
+        btnProceedName.addEventListener('click', function (e) {
           e.stopPropagation();
           submitPlayerName();
         });
-        btnProceedName.addEventListener('touchstart', function(e) {
+        btnProceedName.addEventListener('touchstart', function (e) {
           e.stopPropagation();
           submitPlayerName();
         }, { passive: true });
@@ -1141,11 +1187,11 @@
       }
 
       document.addEventListener('click', handleOverlayTap);
-      document.addEventListener('touchstart', function(e) {
+      document.addEventListener('touchstart', function (e) {
         const langDiv = document.getElementById('rstLangDiv');
         const introDiv = document.getElementById('rstDiv');
         if ((langDiv && (e.target === langDiv || langDiv.contains(e.target))) ||
-            (introDiv && (e.target === introDiv || introDiv.contains(e.target)))) {
+          (introDiv && (e.target === introDiv || introDiv.contains(e.target)))) {
           handleOverlayTap(e);
         }
       }, { passive: true });
@@ -1158,7 +1204,7 @@
       if (window.supabase && window.supabase.createClient && SUPABASE_URL && SUPABASE_ANON_KEY) {
         try {
           supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch(e) {
+        } catch (e) {
           console.warn('Supabase client initialization fallback:', e);
         }
       }
@@ -1177,7 +1223,7 @@
             .select('player_name, score, created_at')
             .order('score', { ascending: false })
             .limit(10);
-          
+
           if (!error && Array.isArray(data) && data.length > 0) {
             cachedLeaderboardData = data;
           } else {
@@ -1194,7 +1240,7 @@
         try {
           const stored = localStorage.getItem('roman_local_leaderboard');
           if (stored) return JSON.parse(stored);
-        } catch(e){}
+        } catch (e) { }
         return [
           { player_name: 'COMMANDER NOVA', score: 540 },
           { player_name: 'CADET STELLA', score: 480 },
@@ -1212,7 +1258,7 @@
           list = list.slice(0, 10);
           localStorage.setItem('roman_local_leaderboard', JSON.stringify(list));
           return list;
-        } catch(e) { return cachedLeaderboardData; }
+        } catch (e) { return cachedLeaderboardData; }
       }
 
       async function submitScoreToSupabase(playerName, score) {
@@ -1224,7 +1270,7 @@
             await supabaseClient
               .from('leaderboard')
               .insert([{ player_name: name, score: score }]);
-          } catch(err) {
+          } catch (err) {
             console.warn('Supabase insert score error:', err);
           }
         }
@@ -1250,7 +1296,7 @@
           const isCurrent = (item.isCurrent || (item.player_name === currentPlayerName && item.score === currentScore));
           const rankDisplay = medals[index] ? `<span class="rank-medal">${medals[index]}</span>` : `#${index + 1}`;
           const rowClass = `leaderboard-row ${isCurrent ? 'current-player' : ''}`;
-          
+
           return `
             <tr class="${rowClass}">
               <td>${rankDisplay}</td>
@@ -1303,20 +1349,20 @@
       }
 
       // Hook called directly when game finishes
-      window.onGameEnd = function(score) {
+      window.onGameEnd = function (score) {
         console.log('🎮 Mission Complete! Final Score:', score);
         const player = window.playerName || localStorage.getItem('roman_player_name') || 'COMMANDER';
         submitScoreToSupabase(player, score);
-        
+
         setTimeout(() => {
           openLeaderboardModal(score);
-        }, 1200);
+        }, 3000);
       };
 
       // Leaderboard Top Bar Button
       const btnTopLeaderboard = document.getElementById('btn-top-leaderboard');
       if (btnTopLeaderboard) {
-        btnTopLeaderboard.addEventListener('click', function(e) {
+        btnTopLeaderboard.addEventListener('click', function (e) {
           e.stopPropagation();
           openLeaderboardModal();
         });
@@ -1325,7 +1371,7 @@
       // Close Button
       const btnCloseLeaderboard = document.getElementById('btnCloseLeaderboard');
       if (btnCloseLeaderboard) {
-        btnCloseLeaderboard.addEventListener('click', function(e) {
+        btnCloseLeaderboard.addEventListener('click', function (e) {
           e.stopPropagation();
           closeLeaderboardModal();
         });
@@ -1334,7 +1380,7 @@
       // Replay Mission Button
       const btnReplayGame = document.getElementById('btnReplayGame');
       if (btnReplayGame) {
-        btnReplayGame.addEventListener('click', function(e) {
+        btnReplayGame.addEventListener('click', function (e) {
           e.stopPropagation();
           closeLeaderboardModal();
           sendKeyEvent('keydown', 'KeyR', 'r', 82);
@@ -1351,4 +1397,5 @@
     })();
   </script>
 </body>
+
 </html>
