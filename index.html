@@ -795,7 +795,6 @@
       </div>
 
       <div class="leaderboard-btn-group">
-        <button type="button" class="btn-leaderboard-action" id="btnReplayGame">🚀 REPLAY MISSION</button>
         <button type="button" class="btn-leaderboard-action" id="btnCloseLeaderboard">❌ CLOSE</button>
       </div>
     </div>
@@ -1377,16 +1376,7 @@
         });
       }
 
-      // Replay Mission Button
-      const btnReplayGame = document.getElementById('btnReplayGame');
-      if (btnReplayGame) {
-        btnReplayGame.addEventListener('click', function (e) {
-          e.stopPropagation();
-          closeLeaderboardModal();
-          sendKeyEvent('keydown', 'KeyR', 'r', 82);
-          setTimeout(() => sendKeyEvent('keyup', 'KeyR', 'r', 82), 50);
-        });
-      }
+
 
 
 
