@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RomanSpaceObserver</string>
+    <string name="title_activity_main">RomanSpaceObserver</string>
+    <string name="package_name">com.nasa.romanspaceobserver</string>
+    <string name="custom_url_scheme">com.nasa.romanspaceobserver</string>
+</resources>

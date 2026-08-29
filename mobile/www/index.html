@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#000000">
+  <title>Roman Space Observer - Mobile Touch Edition</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    /* Touch-control sizing. NOTE: the game's internal render resolution is now
+       fixed at 1280x720 inside app.bundle.js (see the Re({width:1280,height:720,...})
+       call), instead of being derived from whatever the canvas's on-screen box
+       happened to measure at load. That was the actual mobile bug: every HUD
+       element in the game (score, stats, the ship, the intro screen) is positioned
+       with hardcoded pixel math against that internal resolution, so when the
+       canvas's box was small/irregular on a phone, HUD elements collided with
+       each other and with gameplay objects - no amount of CSS around the canvas
+       could fix internal layout math done in pixels the CSS never sees.
+       Now that the internal resolution is fixed and consistent everywhere, the
+       canvas can simply fill the screen (object-fit: contain below preserves the
+       16:9 aspect ratio and letterboxes automatically) and the controls just need
+       to float in the corners - no more fragile margin math shrinking the canvas
+       to "make room". */
+    :root {
+      --ctrl-cell: clamp(34px, 8vw, 48px);
+      --ctrl-gap: 4px;
+      --ctrl-pad: clamp(6px, 2vw, 16px);
+      --action-size: clamp(52px, 12vw, 72px);
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: #050b14;
+      /* Deep space blue to blend with letterboxing */
+      touch-action: none;
+      overscroll-behavior: none;
+      position: fixed;
+      inset: 0;
+    }
+
+    /* The canvas always fills the full viewport now. Its internal drawing
+       resolution is locked to 1280x720 (see app.bundle.js), so object-fit:contain
+       just letterboxes/pillarboxes it to fit any screen shape without ever
+       stretching or distorting the game, and without needing to reserve margin
+       space for the touch controls - they float on top instead (see below). */
+    #container {
+      display: block;
+      width: 100vw;
+      height: 100dvh;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      object-fit: contain;
+    }
+
+    /* --- Responsive NASA UI Elements --- */
+    #rstLangDiv {
+      width: 100% !important;
+      height: 100dvh !important;
+      position: fixed !important;
+      inset: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .lang-en {
+      font-size: clamp(13px, 3.5vw, 18px) !important;
+      color: #fff !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      text-align: center !important;
+      line-height: 1.8 !important;
+      padding: 12px 20px;
+      border: 2px dashed #00d2ff;
+      border-radius: 12px;
+      background: rgba(0, 210, 255, 0.1);
+      cursor: pointer;
+    }
+
+    #rstDiv {
+      background-color: rgba(0, 0, 0, 0.95) !important;
+      position: fixed !important;
+      inset: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex-direction: column !important;
+      color: #fff !important;
+      padding: 15px 24px !important;
+      z-index: 1000 !important;
+      overflow-y: auto !important;
+    }
+
+    #rstHeading {
+      font-size: clamp(16px, 4vw, 24px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      margin-bottom: 8px !important;
+      text-align: center !important;
+      color: #00d2ff !important;
+    }
+
+    #rstDiv h5 {
+      font-size: clamp(10px, 2.5vw, 13px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      line-height: 1.5 !important;
+      text-align: center !important;
+      max-width: 680px !important;
+      margin: 8px 0 14px 0 !important;
+      opacity: 0.9;
+    }
+
+    #rstButton {
+      font-size: clamp(14px, 3.2vw, 18px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      padding: 12px 28px !important;
+      background-color: #00276b !important;
+      color: #fff !important;
+      border: 2px solid #00d2ff !important;
+      border-radius: 14px !important;
+      cursor: pointer !important;
+      box-shadow: 0 4px 12px rgba(0, 210, 255, 0.3) !important;
+      text-shadow: none !important;
+    }
+
+    #rstButton:active {
+      transform: scale(0.95);
+      background-color: #00d2ff !important;
+      color: #000 !important;
+    }
+
+    /* --- Bottom Action Bar (Leaderboard) --- */
+    .top-lang-bar {
+      position: fixed;
+      bottom: max(env(safe-area-inset-bottom, 16px), 16px);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      z-index: 9999999;
+      pointer-events: auto;
+    }
+
+    .lang-pill-btn {
+      background: rgba(0, 30, 70, 0.5);
+      border: 1.5px solid rgba(0, 210, 255, 0.4);
+      color: rgba(0, 255, 255, 0.7);
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(11px, 2.8vw, 14px);
+      padding: 7px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      opacity: 0.35;
+      transition: opacity 0.3s ease, transform 0.15s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .lang-pill-btn:hover,
+    .lang-pill-btn:focus {
+      opacity: 1;
+      background: rgba(0, 40, 90, 0.95);
+      border-color: #00ffff;
+      color: #00ffff;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+    }
+
+    .lang-pill-btn:active {
+      opacity: 1;
+      background: #00d2ff;
+      color: #000;
+      transform: scale(0.94);
+    }
+
+    /* --- Mobile Virtual Controls Overlay --- */
+    /* Hidden by default; only shown on touch-capable devices (see .is-touch-device below).
+       This is the "cross platform" switch: desktop/mouse+keyboard users never see
+       the on-screen D-pad/SNAP button, touch/mobile users always do. */
+    .touch-ctrl-container {
+      display: none;
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 99999;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: var(--ctrl-pad);
+      padding-bottom: max(env(safe-area-inset-bottom, 8px), 8px);
+    }
+
+    html.is-touch-device .touch-ctrl-container {
+      display: flex;
+    }
+
+    /* --- Desktop keyboard hint (mirrors the mobile touch controls) --- */
+    .desktop-key-hint {
+      display: none;
+      position: fixed;
+      bottom: 68px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: #cfefff;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      padding: 8px 16px;
+      border-radius: 20px;
+      z-index: 999999;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.6s ease;
+    }
+
+    .desktop-key-hint.fade-out {
+      opacity: 0;
+    }
+
+    html.is-desktop-device .desktop-key-hint {
+      display: block;
+    }
+
+    .touch-btn {
+      pointer-events: auto;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: 50%;
+      color: rgba(255, 255, 255, 0.85);
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      transition: transform 0.05s ease, background 0.05s ease;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .touch-btn:active {
+      background: rgba(0, 200, 255, 0.7);
+      transform: scale(0.92);
+    }
+
+    /* Dynamic Movable Virtual Joystick on Left Side */
+    .joystick-zone {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 55vw;
+      height: 75vh;
+      pointer-events: auto;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      z-index: 999999;
+    }
+
+    .joystick-base {
+      position: fixed;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 200, 255, 0.22) 0%, rgba(0, 0, 0, 0.55) 80%);
+      border: 2px solid rgba(0, 200, 255, 0.5);
+      box-shadow: 0 0 20px rgba(0, 200, 255, 0.3), inset 0 0 12px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      opacity: 0.8;
+      bottom: 16px;
+      left: 75px;
+    }
+
+    .joystick-base.active {
+      opacity: 1;
+      border-color: rgba(0, 230, 255, 0.9);
+      box-shadow: 0 0 25px rgba(0, 220, 255, 0.6), inset 0 0 15px rgba(0, 200, 255, 0.5);
+    }
+
+    .joystick-knob {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(0, 190, 255, 0.95) 100%);
+      border: 2px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 200, 255, 0.7);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* Action Snap & Retry Buttons explicitly locked to Bottom Right */
+    .action-group {
+      position: fixed;
+      bottom: max(env(safe-area-inset-bottom, 16px), 16px);
+      right: calc(max(env(safe-area-inset-right, 16px), 16px) + 60px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      z-index: 9999999;
+      pointer-events: auto;
+    }
+
+    .btn-retry {
+      width: clamp(44px, 9.5vw, 56px);
+      height: clamp(44px, 9.5vw, 56px);
+      font-size: clamp(10px, 2.2vw, 12px);
+      text-align: center;
+      background: rgba(0, 200, 100, 0.4);
+      border-color: rgba(100, 255, 180, 0.7);
+      line-height: 1.1;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+
+      transform: translate(35px, -5px);
+    }
+
+    .btn-retry:active {
+      background: rgba(0, 220, 100, 0.9);
+      transform: translate(35px, -5px) scale(0.92);
+    }
+
+    .btn-action {
+      width: 100px;
+      height: 100px;
+      font-size: 14px;
+      text-align: center;
+      background: rgba(255, 50, 50, 0.35);
+      border-color: rgba(255, 120, 120, 0.6);
+      line-height: 1.15;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-action:active {
+      background: rgba(255, 50, 50, 0.9);
+      transform: scale(0.92);
+    }
+
+    /* Portrait Rotation Hint */
+    .portrait-hint {
+      display: none;
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 20, 50, 0.92);
+      border: 1.5px solid #00d2ff;
+      color: #ffffff;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(12px, 3vw, 14px);
+      padding: 8px 18px;
+      border-radius: 20px;
+      z-index: 99999999;
+      pointer-events: none;
+      box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
+    }
+
+    /* Only nudge people to rotate when they're actually on a touch device -
+       a desktop window in a "portrait-ish" shape shouldn't show this. */
+    @media (orientation: portrait) {
+      html.is-touch-device .portrait-hint {
+        display: block;
+      }
+    }
+
+    /* --- Retro NASA Player Name Entry Overlay --- */
+    #playerNameDiv {
+      background-color: rgba(5, 11, 20, 0.95) !important;
+      position: fixed !important;
+      inset: 0 !important;
+      display: none;
+      align-items: center !important;
+      justify-content: center !important;
+      flex-direction: column !important;
+      color: #fff !important;
+      padding: 20px 24px !important;
+      z-index: 1005 !important;
+      overflow-y: auto !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      animation: fadeInNameCard 0.3s ease-out forwards;
+    }
+
+    @keyframes fadeInNameCard {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .name-card {
+      background: rgba(0, 20, 50, 0.85);
+      border: 2px solid #00d2ff;
+      border-radius: 16px;
+      padding: clamp(20px, 4vw, 36px);
+      max-width: 580px;
+      width: 90%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 0 30px rgba(0, 210, 255, 0.35), inset 0 0 15px rgba(0, 39, 107, 0.5);
+      text-align: center;
+    }
+
+    .name-title {
+      font-size: clamp(15px, 3.6vw, 22px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      color: #00d2ff !important;
+      margin-bottom: 14px !important;
+      text-shadow: 0 0 10px rgba(0, 210, 255, 0.6);
+      text-transform: uppercase;
+    }
+
+    .name-sub {
+      font-size: clamp(10px, 2.2vw, 12px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      color: #d0efff !important;
+      line-height: 1.6 !important;
+      margin-bottom: 22px !important;
+      opacity: 0.9;
+    }
+
+    .name-input-group {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: center;
+    }
+
+    #playerNameInput {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid #00d2ff;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-family: 'Press Start 2p', monospace, sans-serif;
+      font-size: clamp(12px, 3vw, 15px);
+      color: #ffffff;
+      text-align: center;
+      outline: none;
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    #playerNameInput:focus {
+      border-color: #00ffff;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.6), inset 0 0 10px rgba(0, 210, 255, 0.3);
+      background: rgba(0, 30, 70, 0.8);
+    }
+
+    #playerNameInput::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: clamp(9px, 2vw, 12px);
+    }
+
+    #playerNameInput.input-error {
+      border-color: #ff3366 !important;
+      box-shadow: 0 0 22px rgba(255, 51, 102, 0.8), inset 0 0 10px rgba(255, 51, 102, 0.4) !important;
+      background: rgba(40, 0, 15, 0.85) !important;
+      animation: shakeNameInput 0.35s ease-in-out;
+    }
+
+    .name-error-msg {
+      display: none;
+      font-family: 'Press Start 2p', monospace, sans-serif;
+      font-size: clamp(9px, 2vw, 11px);
+      color: #ff3366;
+      text-shadow: 0 0 10px rgba(255, 51, 102, 0.8);
+      margin-top: 2px;
+      margin-bottom: 2px;
+      line-height: 1.4;
+      animation: shakeNameInput 0.35s ease-in-out;
+    }
+
+    @keyframes shakeNameInput {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-7px); }
+      40%, 80% { transform: translateX(7px); }
+    }
+
+    #btnProceedName {
+      font-size: clamp(13px, 3vw, 16px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      padding: 14px 32px !important;
+      background-color: #00276b !important;
+      color: #fff !important;
+      border: 2px solid #00d2ff !important;
+      border-radius: 12px !important;
+      cursor: pointer !important;
+      box-shadow: 0 4px 14px rgba(0, 210, 255, 0.4) !important;
+      transition: transform 0.1s ease, background 0.15s ease, box-shadow 0.15s ease;
+      margin-top: 8px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    #btnProceedName:hover,
+    #btnProceedName:focus {
+      background-color: #003fa8 !important;
+      box-shadow: 0 0 20px rgba(0, 210, 255, 0.7) !important;
+    }
+
+    #btnProceedName:active {
+      transform: scale(0.96);
+      background-color: #00d2ff !important;
+      color: #000 !important;
+    }
+
+    /* Floating Player Badge HUD */
+    .player-badge {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      background: rgba(0, 20, 50, 0.85);
+      border: 1.5px solid #00d2ff;
+      color: #00d2ff;
+      font-family: 'Press Start 2p', monospace, sans-serif;
+      font-size: clamp(9px, 2vw, 12px);
+      padding: 7px 14px;
+      border-radius: 20px;
+      z-index: 999999;
+      pointer-events: none;
+      box-shadow: 0 0 12px rgba(0, 210, 255, 0.4);
+      display: none;
+    }
+
+    /* --- Retro NASA Supabase Leaderboard Overlay --- */
+    #leaderboardDiv {
+      background-color: rgba(20, 14, 5, 0.96) !important;
+      position: fixed !important;
+      inset: 0 !important;
+      display: none;
+      align-items: center !important;
+      justify-content: center !important;
+      flex-direction: column !important;
+      color: #fff !important;
+      padding: 16px 20px !important;
+      z-index: 1010 !important;
+      overflow-y: auto !important;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      animation: fadeInNameCard 0.3s ease-out forwards;
+      
+
+    }
+
+    .leaderboard-card {
+      background: rgba(0, 20, 55, 0.9);
+      border: 2px solid #00d2ff;
+      border-radius: 16px;
+      padding: clamp(16px, 3.5vw, 28px);
+      max-width: 680px;
+      width: 95%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 0 35px rgba(0, 210, 255, 0.4), inset 0 0 20px rgba(0, 39, 107, 0.6);
+      text-align: center;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .leaderboard-title {
+      font-size: clamp(15px, 3.8vw, 22px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      color: #00ffff !important;
+      margin-bottom: 8px !important;
+      text-shadow: 0 0 12px rgba(0, 255, 255, 0.7);
+      text-transform: uppercase;
+    }
+
+    .leaderboard-sub {
+      font-size: clamp(9px, 2vw, 11px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      color: #b0e8ff !important;
+      margin-bottom: 16px !important;
+      opacity: 0.9;
+    }
+
+    /* Leaderboard Table */
+    .leaderboard-table-container {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1.5px solid rgba(0, 210, 255, 0.4);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+    }
+
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Press Start 2p', monospace, sans-serif;
+      font-size: clamp(9px, 2vw, 11px);
+    }
+
+    .leaderboard-table th {
+      background: rgba(0, 40, 90, 0.9);
+      color: #00d2ff;
+      padding: 10px 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1.5px solid #00d2ff;
+    }
+
+    .leaderboard-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid rgba(0, 210, 255, 0.15);
+      color: #e0f7ff;
+    }
+
+    .leaderboard-row:nth-child(even) {
+      background: rgba(0, 35, 75, 0.3);
+    }
+
+    .leaderboard-row.current-player {
+      background: rgba(0, 210, 255, 0.25) !important;
+      border-left: 3px solid #00ffff;
+      animation: pulsePlayerRow 1.8s infinite alternate;
+    }
+
+    @keyframes pulsePlayerRow {
+      from {
+        box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.3);
+      }
+
+      to {
+        box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.8);
+      }
+    }
+
+    .rank-medal {
+      font-size: 1.2em;
+    }
+
+    /* Loader Spinner */
+    .space-spinner-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 24px 0;
+    }
+
+    .space-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3.5px solid rgba(0, 210, 255, 0.2);
+      border-top: 3.5px solid #00ffff;
+      border-radius: 50%;
+      animation: spinSpace 0.8s linear infinite;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+    }
+
+    @keyframes spinSpace {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .leaderboard-btn-group {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      justify-content: center;
+      flex-wrap: wrap;
+      
+    }
+
+    .btn-leaderboard-action {
+      font-size: clamp(10px, 2.4vw, 13px) !important;
+      font-family: 'Press Start 2p', monospace, sans-serif !important;
+      padding: 10px 20px !important;
+      background-color: #00276b !important;
+      color: #fff !important;
+      border: 2px solid #00d2ff !important;
+      border-radius: 10px !important;
+      cursor: pointer !important;
+      box-shadow: 0 4px 12px rgba(0, 210, 255, 0.3) !important;
+      transition: all 0.15s ease;
+    }
+
+    .btn-leaderboard-action:hover {
+      background-color: #0042b3 !important;
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.7) !important;
+    }
+
+    .btn-leaderboard-action:active {
+      transform: scale(0.95);
+      background-color: #00d2ff !important;
+      color: #000 !important;
+    }
+  </style>
+
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔭</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="app.bundle.js?v=16"></script>
+</head>
+
+<body>
+  <canvas id="container"></canvas>
+
+  <!-- Portrait Orientation Hint (touch devices only) -->
+  <div class="portrait-hint">🔄 Rotate phone to Landscape for best view</div>
+
+  <!-- Keyboard Controls Hint (desktop/mouse devices only) -->
+  <div class="desktop-key-hint" id="desktop-key-hint">Move: ← ↑ → ↓ &nbsp;&nbsp;|&nbsp;&nbsp; Capture: SPACE
+    &nbsp;&nbsp;|&nbsp;&nbsp; Retry: R</div>
+
+  <!-- Quick Bottom Action Buttons (Leaderboard) -->
+  <div class="top-lang-bar" id="lang-bar">
+    <button type="button" class="lang-pill-btn" id="btn-top-leaderboard">🏆 Leaderboard</button>
+  </div>
+
+  <!-- Floating Virtual Touch Controller -->
+  <div class="touch-ctrl-container">
+    <!-- Movable Virtual Joystick Zone -->
+    <div class="joystick-zone" id="joystick-zone">
+      <div class="joystick-base" id="joystick-base">
+        <div class="joystick-knob" id="joystick-knob"></div>
+      </div>
+    </div>
+
+    <!-- Snap & Retry Buttons -->
+    <div class="action-group">
+      <button type="button" class="touch-btn btn-action" id="btn-space">
+        SNAP<br><span style="font-size:0.7em; opacity:0.85;">SPACE</span>
+      </button>
+      <button type="button" class="touch-btn btn-retry" id="btn-retry" aria-label="Retry">
+        🔄<br><span style="font-size:0.7em;">RETRY</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Player Badge Floating HUD -->
+
+
+  <!-- Player Name Entry Overlay (between Load Game and Roman Nancy Observer) -->
+  <div id="playerNameDiv">
+    <div class="name-card">
+      <div class="name-title">🚀 OBSERVER REGISTRATION</div>
+      <div class="name-sub">IDENTIFY YOURSELF BEFORE COMMANDING THE NANCY GRACE ROMAN SPACE TELESCOPE:</div>
+      <div class="name-input-group">
+        <input type="text" id="playerNameInput" maxlength="20" placeholder="ENTER YOUR NAME..." autocomplete="off"
+          spellcheck="false" />
+        <div id="nameErrorMsg" class="name-error-msg">⚠️ PLEASE ENTER YOUR NAME TO PROCEED!</div>
+        <button type="button" id="btnProceedName">PROCEED ▶</button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Supabase Leaderboard Overlay -->
+  <div id="leaderboardDiv">
+    <div class="leaderboard-card">
+      <div class="leaderboard-title">🏆 OBSERVER LEADERBOARD</div>
+      <div class="leaderboard-sub">TOP COMMANDERS OF THE ROMAN SPACE TELESCOPE</div>
+
+      <!-- Loader Spinner -->
+      <div id="leaderboardLoader" class="space-spinner-container">
+        <div class="space-spinner"></div>
+        <div style="font-family:'Press Start 2p'; font-size:10px; color:#00d2ff; margin-top:8px;">SYNCHRONIZING WITH
+          SUPABASE...</div>
+      </div>
+
+      <!-- Leaderboard Table -->
+      <div id="leaderboardTableContainer" class="leaderboard-table-container" style="display:none;">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>RANK</th>
+              <th>PILOT / STUDENT</th>
+              <th>SCORE</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardTbody">
+            <!-- Dynamic Rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="leaderboard-btn-group">
+        <button type="button" class="btn-leaderboard-action" id="btnCloseLeaderboard">❌ CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // --- Cross-platform device detection ---
+      // A device is treated as "touch" if it has a coarse pointer (finger, not mouse)
+      // OR exposes touch APIs. This is what decides whether the on-screen D-pad/SNAP
+      // button (mobile) or the keyboard hint (desktop) is shown.
+      let hasRequestedFullScreen = false;
+      function requestFullScreen() {
+        if (hasRequestedFullScreen) return;
+        var doc = window.document;
+        var docEl = doc.documentElement;
+        var req = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+        if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement && req) {
+          try {
+            var p = req.call(docEl);
+            if (p && p.then) {
+              p.then(function () { hasRequestedFullScreen = true; }).catch(function () { });
+            } else {
+              hasRequestedFullScreen = true;
+            }
+          } catch (e) { }
+        }
+      }
+
+      function isLikelyTouchDevice() {
+        var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+        var hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints || 0) > 0;
+        return !!(coarse || hasTouch);
+      }
+
+      function applyDeviceClass() {
+        var touch = isLikelyTouchDevice();
+        document.documentElement.classList.toggle('is-touch-device', touch);
+        document.documentElement.classList.toggle('is-desktop-device', !touch);
+      }
+      applyDeviceClass();
+
+      // If someone plugs in a mouse on a touch device (or vice versa), keep it current
+      // without being noisy: re-check on the first real interaction of each kind.
+      window.addEventListener('pointerdown', function (e) {
+        if (e.pointerType === 'touch' || e.pointerType === 'mouse') applyDeviceClass();
+      }, { passive: true });
+
+      // Fade the desktop keyboard hint out after the person starts playing.
+      var keyHintFaded = false;
+      function fadeKeyHint() {
+        if (keyHintFaded) return;
+        keyHintFaded = true;
+        var hint = document.getElementById('desktop-key-hint');
+        if (hint) hint.classList.add('fade-out');
+      }
+      setTimeout(fadeKeyHint, 6000);
+
+      function sendKeyEvent(type, code, key, keyCode) {
+        const ev = new KeyboardEvent(type, {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          key: key,
+          code: code,
+          keyCode: keyCode,
+          which: keyCode
+        });
+
+        // 1. Dispatch directly on the canvas (where Kaboom game engine listens)
+        const canvas = document.getElementById('container');
+        if (canvas) {
+          canvas.dispatchEvent(ev);
+        }
+        // 2. Dispatch on document (where NASA intro handler listens)
+        document.dispatchEvent(ev);
+        // 3. Dispatch on window
+        window.dispatchEvent(ev);
+      }
+
+      function bindKey(elementId, code, key, keyCode, autoHideBar) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+
+        const press = (e) => {
+          if (e.cancelable) e.preventDefault();
+          requestFullScreen();
+          sendKeyEvent('keydown', code, key, keyCode);
+          if (autoHideBar) {
+            const bar = document.getElementById('lang-bar');
+            if (bar) bar.style.display = 'none';
+          }
+        };
+        const release = (e) => {
+          if (e.cancelable) e.preventDefault();
+          sendKeyEvent('keyup', code, key, keyCode);
+        };
+
+        el.addEventListener('touchstart', press, { passive: false });
+        el.addEventListener('touchend', release, { passive: false });
+        el.addEventListener('touchcancel', release, { passive: false });
+        el.addEventListener('mousedown', press);
+        el.addEventListener('mouseup', release);
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+          fadeKeyHint();
+        }
+      });
+
+      // Snap & Retry Buttons
+      bindKey('btn-space', 'Space', ' ', 32, false);
+      bindKey('btn-retry', 'KeyR', 'r', 82, false);
+
+      // --- Dynamic Movable Virtual Joystick Implementation ---
+      const joystickZone = document.getElementById('joystick-zone');
+      const joystickBase = document.getElementById('joystick-base');
+      const joystickKnob = document.getElementById('joystick-knob');
+
+      let joystickActive = false;
+      let joystickTouchId = null;
+      let joystickCenter = { x: 75, y: window.innerHeight - 75 };
+      const maxRadius = 45;
+
+      const activeDirectionKeys = {
+        ArrowUp: false,
+        ArrowDown: false,
+        ArrowLeft: false,
+        ArrowRight: false
+      };
+
+      function updateDirectionKey(code, key, keyCode, shouldBePressed) {
+        if (activeDirectionKeys[code] !== shouldBePressed) {
+          activeDirectionKeys[code] = shouldBePressed;
+          sendKeyEvent(shouldBePressed ? 'keydown' : 'keyup', code, key, keyCode);
+          if (shouldBePressed) fadeKeyHint();
+        }
+      }
+
+      function onJoystickTouchStart(e) {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          if (!joystickActive && touch.clientX < window.innerWidth * 0.55) {
+            joystickActive = true;
+            joystickTouchId = touch.identifier;
+            requestFullScreen();
+
+            // Reposition joystick base directly under user's thumb
+            joystickCenter = { x: touch.clientX, y: touch.clientY };
+            if (joystickBase) {
+              joystickBase.style.left = touch.clientX + 'px';
+              joystickBase.style.top = touch.clientY + 'px';
+              joystickBase.style.bottom = 'auto';
+              joystickBase.classList.add('active');
+            }
+
+            updateJoystickPos(touch.clientX, touch.clientY);
+            if (e.cancelable) e.preventDefault();
+            break;
+          }
+        }
+      }
+
+      function onJoystickTouchMove(e) {
+        if (!joystickActive) return;
+        for (let i = 0; i < e.touches.length; i++) {
+          const touch = e.touches[i];
+          if (touch.identifier === joystickTouchId) {
+            updateJoystickPos(touch.clientX, touch.clientY);
+            if (e.cancelable) e.preventDefault();
+            break;
+          }
+        }
+      }
+
+      function updateJoystickPos(clientX, clientY) {
+        const dx = clientX - joystickCenter.x;
+        const dy = clientY - joystickCenter.y;
+        const dist = Math.hypot(dx, dy);
+        const angle = Math.atan2(dy, dx);
+
+        const clampedDist = Math.min(dist, maxRadius);
+        const knobX = Math.cos(angle) * clampedDist;
+        const knobY = Math.sin(angle) * clampedDist;
+
+        if (joystickKnob) {
+          joystickKnob.style.transform = `translate(calc(-50% + ${knobX}px), calc(-50% + ${knobY}px))`;
+        }
+
+        const deadzone = 10;
+        const isUp = dy < -deadzone && Math.abs(dy) > Math.abs(dx) * 0.35;
+        const isDown = dy > deadzone && Math.abs(dy) > Math.abs(dx) * 0.35;
+        const isLeft = dx < -deadzone && Math.abs(dx) > Math.abs(dy) * 0.35;
+        const isRight = dx > deadzone && Math.abs(dx) > Math.abs(dy) * 0.35;
+
+        updateDirectionKey('ArrowUp', 'ArrowUp', 38, isUp);
+        updateDirectionKey('ArrowDown', 'ArrowDown', 40, isDown);
+        updateDirectionKey('ArrowLeft', 'ArrowLeft', 37, isLeft);
+        updateDirectionKey('ArrowRight', 'ArrowRight', 39, isRight);
+      }
+
+      function onJoystickTouchEnd(e) {
+        if (!joystickActive) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === joystickTouchId) {
+            joystickActive = false;
+            joystickTouchId = null;
+
+            if (joystickBase) {
+              joystickBase.classList.remove('active');
+            }
+            if (joystickKnob) {
+              joystickKnob.style.transform = 'translate(-50%, -50%)';
+            }
+
+            // Release all direction keys immediately
+            updateDirectionKey('ArrowUp', 'ArrowUp', 38, false);
+            updateDirectionKey('ArrowDown', 'ArrowDown', 40, false);
+            updateDirectionKey('ArrowLeft', 'ArrowLeft', 37, false);
+            updateDirectionKey('ArrowRight', 'ArrowRight', 39, false);
+            break;
+          }
+        }
+      }
+
+      if (joystickZone) {
+        joystickZone.addEventListener('touchstart', onJoystickTouchStart, { passive: false });
+        window.addEventListener('touchmove', onJoystickTouchMove, { passive: false });
+        window.addEventListener('touchend', onJoystickTouchEnd, { passive: false });
+        window.addEventListener('touchcancel', onJoystickTouchEnd, { passive: false });
+      }
+
+      // Auto-select English language as default on launch
+      function autoSelectEnglish() {
+        var attempts = 0;
+        var interval = setInterval(function () {
+          attempts++;
+          var langDiv = document.getElementById('rstLangDiv');
+          if (langDiv) {
+            sendKeyEvent('keydown', 'Digit1', '1', 49);
+            setTimeout(function () {
+              sendKeyEvent('keyup', 'Digit1', '1', 49);
+            }, 50);
+            clearInterval(interval);
+          } else if (attempts > 60) {
+            clearInterval(interval);
+          }
+        }, 50);
+      }
+      autoSelectEnglish();
+
+      // --- Player Name Entry & Game Flow Integration ---
+      let playerHasEnteredName = false;
+
+      const playerNameDiv = document.getElementById('playerNameDiv');
+      const playerNameInput = document.getElementById('playerNameInput');
+      const btnProceedName = document.getElementById('btnProceedName');
+      const playerBadge = document.getElementById('playerBadge');
+
+      // Pre-fill existing name if saved
+      if (playerNameInput) {
+        const savedName = localStorage.getItem('roman_player_name');
+        if (savedName) playerNameInput.value = savedName;
+
+        // Clear error state on input
+        playerNameInput.addEventListener('input', function () {
+          if (playerNameInput.value.trim() !== '') {
+            playerNameInput.classList.remove('input-error');
+            const errorMsg = document.getElementById('nameErrorMsg');
+            if (errorMsg) errorMsg.style.display = 'none';
+          }
+        });
+
+        // Isolate typing in input box so Space key doesn't trigger Kaboom game actions
+        ['keydown', 'keyup', 'keypress'].forEach(evt => {
+          playerNameInput.addEventListener(evt, function (e) {
+            e.stopPropagation();
+            if (evt === 'keydown' && e.key === 'Enter') {
+              e.preventDefault();
+              submitPlayerName();
+            }
+          });
+        });
+      }
+
+      function showPlayerNameEntry() {
+        dismissIntroPanelIfStuck();
+        if (playerNameDiv) {
+          playerNameDiv.style.display = 'flex';
+          setTimeout(() => {
+            if (playerNameInput) {
+              playerNameInput.focus();
+              playerNameInput.select();
+            }
+          }, 100);
+        }
+      }
+
+      function submitPlayerName() {
+        const rawName = playerNameInput ? playerNameInput.value : '';
+        const cleanName = (rawName || '').trim().toUpperCase().slice(0, 20);
+        const nameErrorMsg = document.getElementById('nameErrorMsg');
+
+        // Require name before proceeding
+        if (!cleanName) {
+          if (nameErrorMsg) nameErrorMsg.style.display = 'block';
+          if (playerNameInput) {
+            playerNameInput.classList.add('input-error');
+            playerNameInput.focus();
+          }
+          return false;
+        }
+
+        if (nameErrorMsg) nameErrorMsg.style.display = 'none';
+        if (playerNameInput) playerNameInput.classList.remove('input-error');
+
+        window.playerName = cleanName;
+        try { localStorage.setItem('roman_player_name', cleanName); } catch (e) { }
+
+        if (playerBadge) {
+          playerBadge.innerText = '🧑‍🚀 OBSERVER: ' + cleanName;
+          playerBadge.style.display = 'block';
+        }
+
+        if (playerNameDiv) {
+          playerNameDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          playerNameDiv.style.opacity = '0';
+          playerNameDiv.style.transform = 'scale(0.95)';
+          setTimeout(() => {
+            playerNameDiv.style.display = 'none';
+          }, 300);
+        }
+
+        playerHasEnteredName = true;
+
+        // Proceed to Roman Nancy Observer mission
+        sendKeyEvent('keydown', 'Space', ' ', 32);
+        setTimeout(() => sendKeyEvent('keyup', 'Space', ' ', 32), 50);
+      }
+
+      if (btnProceedName) {
+        btnProceedName.addEventListener('click', function (e) {
+          e.stopPropagation();
+          submitPlayerName();
+        });
+        btnProceedName.addEventListener('touchstart', function (e) {
+          e.stopPropagation();
+          submitPlayerName();
+        }, { passive: true });
+      }
+
+      // --- Fix: the game's own "Load Game" instructions panel (#rstDiv) is meant to
+      // fade out the moment gameplay begins.
+      function dismissIntroPanelIfStuck() {
+        var langDiv = document.getElementById('rstLangDiv');
+        if (langDiv) {
+          sendKeyEvent('keydown', 'Digit1', '1', 49);
+          sendKeyEvent('keyup', 'Digit1', '1', 49);
+        }
+        var introDiv = document.getElementById('rstDiv');
+        if (!introDiv) return;
+        introDiv.style.transition = 'opacity 0.4s ease';
+        introDiv.style.opacity = '0';
+        introDiv.style.pointerEvents = 'none';
+        setTimeout(function () {
+          if (introDiv && introDiv.parentNode) introDiv.parentNode.removeChild(introDiv);
+        }, 400);
+      }
+
+      // Intercept keydown for Space when on Load Game screen (#rstDiv)
+      document.addEventListener('keydown', function (e) {
+        if (e.code === 'Space' || e.key === ' ') {
+          var langDiv = document.getElementById('rstLangDiv');
+          if (langDiv) {
+            sendKeyEvent('keydown', 'Digit1', '1', 49);
+            sendKeyEvent('keyup', 'Digit1', '1', 49);
+          }
+          var introDiv = document.getElementById('rstDiv');
+          if (introDiv && !playerHasEnteredName) {
+            e.stopPropagation();
+            showPlayerNameEntry();
+            return;
+          }
+          setTimeout(dismissIntroPanelIfStuck, 50);
+        }
+      }, true);
+
+      // Tap language screen or instruction screen ("Load Game") anywhere to progress
+      function handleOverlayTap(e) {
+        requestFullScreen();
+        const langDiv = document.getElementById('rstLangDiv');
+        if (langDiv) {
+          sendKeyEvent('keydown', 'Digit1', '1', 49);
+          sendKeyEvent('keyup', 'Digit1', '1', 49);
+          return;
+        }
+
+        const introDiv = document.getElementById('rstDiv');
+        const btn = document.getElementById('rstButton');
+        if (introDiv && (e.target === introDiv || introDiv.contains(e.target) || (btn && btn.contains(e.target)))) {
+          if (!playerHasEnteredName) {
+            e.stopPropagation();
+            showPlayerNameEntry();
+            return;
+          }
+          sendKeyEvent('keydown', 'Space', ' ', 32);
+          setTimeout(() => sendKeyEvent('keyup', 'Space', ' ', 32), 50);
+          dismissIntroPanelIfStuck();
+        }
+      }
+
+      document.addEventListener('click', handleOverlayTap);
+      document.addEventListener('touchstart', function (e) {
+        const langDiv = document.getElementById('rstLangDiv');
+        const introDiv = document.getElementById('rstDiv');
+        if ((langDiv && (e.target === langDiv || langDiv.contains(e.target))) ||
+          (introDiv && (e.target === introDiv || introDiv.contains(e.target)))) {
+          handleOverlayTap(e);
+        }
+      }, { passive: true });
+
+      // --- Supabase Leaderboard Client Integration ---
+      const SUPABASE_URL = 'https://xjgcseovpxeplsnvfmbf.supabase.co';
+      const SUPABASE_ANON_KEY = 'sb_publishable_Deb4e3nHaKnWOgMzrwMCMA_0jbbMLVj';
+
+      let supabaseClient = null;
+      if (window.supabase && window.supabase.createClient && SUPABASE_URL && SUPABASE_ANON_KEY) {
+        try {
+          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+          console.warn('Supabase client initialization fallback:', e);
+        }
+      }
+
+      let cachedLeaderboardData = [];
+
+      // Pre-fetch scores in background for instant loading when game finishes
+      async function prefetchLeaderboard() {
+        if (!supabaseClient) {
+          cachedLeaderboardData = getLocalLeaderboard();
+          return;
+        }
+        try {
+          const { data, error } = await supabaseClient
+            .from('leaderboard')
+            .select('player_name, score, created_at')
+            .order('score', { ascending: false })
+            .limit(10);
+
+          if (!error && Array.isArray(data) && data.length > 0) {
+            cachedLeaderboardData = data;
+          } else {
+            cachedLeaderboardData = getLocalLeaderboard();
+          }
+        } catch (err) {
+          console.warn('Error pre-fetching Supabase leaderboard:', err);
+          cachedLeaderboardData = getLocalLeaderboard();
+        }
+      }
+      prefetchLeaderboard();
+
+      function getLocalLeaderboard() {
+        try {
+          const stored = localStorage.getItem('roman_local_leaderboard');
+          if (stored) return JSON.parse(stored);
+        } catch (e) { }
+        return [
+          { player_name: 'COMMANDER NOVA', score: 540 },
+          { player_name: 'CADET STELLA', score: 480 },
+          { player_name: 'ASTRO ALEX', score: 410 },
+          { player_name: 'GALAXY PILOT', score: 350 },
+          { player_name: 'ORBITER SAM', score: 290 }
+        ];
+      }
+
+      function saveLocalScore(name, score) {
+        try {
+          let list = getLocalLeaderboard();
+          list.push({ player_name: name, score: score, created_at: new Date().toISOString() });
+          list.sort((a, b) => b.score - a.score);
+          list = list.slice(0, 10);
+          localStorage.setItem('roman_local_leaderboard', JSON.stringify(list));
+          return list;
+        } catch (e) { return cachedLeaderboardData; }
+      }
+
+      async function submitScoreToSupabase(playerName, score) {
+        const name = (playerName || window.playerName || 'COMMANDER').toUpperCase().trim();
+        saveLocalScore(name, score);
+
+        if (supabaseClient) {
+          try {
+            await supabaseClient
+              .from('leaderboard')
+              .insert([{ player_name: name, score: score }]);
+          } catch (err) {
+            console.warn('Supabase insert score error:', err);
+          }
+        }
+        await prefetchLeaderboard();
+      }
+
+      function renderLeaderboardTable(data, currentPlayerName, currentScore) {
+        const tbody = document.getElementById('leaderboardTbody');
+        if (!tbody) return;
+
+        let list = Array.isArray(data) ? [...data] : [];
+        if (typeof currentScore === 'number' && currentPlayerName) {
+          const exists = list.some(item => item.player_name === currentPlayerName && item.score === currentScore);
+          if (!exists) {
+            list.push({ player_name: currentPlayerName, score: currentScore, isCurrent: true });
+            list.sort((a, b) => b.score - a.score);
+            list = list.slice(0, 10);
+          }
+        }
+
+        const medals = ['🥇', '🥈', '🥉'];
+        tbody.innerHTML = list.map((item, index) => {
+          const isCurrent = (item.isCurrent || (item.player_name === currentPlayerName && item.score === currentScore));
+          const rankDisplay = medals[index] ? `<span class="rank-medal">${medals[index]}</span>` : `#${index + 1}`;
+          const rowClass = `leaderboard-row ${isCurrent ? 'current-player' : ''}`;
+
+          return `
+            <tr class="${rowClass}">
+              <td>${rankDisplay}</td>
+              <td style="text-transform:uppercase;">${item.player_name || 'ANONYMOUS'} ${isCurrent ? '⭐ (YOU)' : ''}</td>
+              <td style="color:#00ffff; font-weight:bold;">${item.score} PTS</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      async function openLeaderboardModal(latestScore = null) {
+        const leaderboardDiv = document.getElementById('leaderboardDiv');
+        const loader = document.getElementById('leaderboardLoader');
+        const tableContainer = document.getElementById('leaderboardTableContainer');
+
+        if (!leaderboardDiv) return;
+
+        leaderboardDiv.style.display = 'flex';
+        leaderboardDiv.style.opacity = '1';
+        leaderboardDiv.style.transform = 'scale(1)';
+
+        if (loader) loader.style.display = 'flex';
+        if (tableContainer) tableContainer.style.display = 'none';
+
+        const currentPlayer = (window.playerName || localStorage.getItem('roman_player_name') || 'COMMANDER').toUpperCase();
+
+        if (cachedLeaderboardData.length > 0) {
+          renderLeaderboardTable(cachedLeaderboardData, currentPlayer, latestScore);
+          if (loader) loader.style.display = 'none';
+          if (tableContainer) tableContainer.style.display = 'block';
+        }
+
+        await prefetchLeaderboard();
+        renderLeaderboardTable(cachedLeaderboardData, currentPlayer, latestScore);
+
+        if (loader) loader.style.display = 'none';
+        if (tableContainer) tableContainer.style.display = 'block';
+      }
+
+      function closeLeaderboardModal() {
+        const leaderboardDiv = document.getElementById('leaderboardDiv');
+        if (leaderboardDiv) {
+          leaderboardDiv.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+          leaderboardDiv.style.opacity = '0';
+          leaderboardDiv.style.transform = 'scale(0.95)';
+          setTimeout(() => {
+            leaderboardDiv.style.display = 'none';
+          }, 250);
+        }
+      }
+
+      // Hook called directly when game finishes
+      window.onGameEnd = function (score) {
+        console.log('🎮 Mission Complete! Final Score:', score);
+        const player = window.playerName || localStorage.getItem('roman_player_name') || 'COMMANDER';
+        submitScoreToSupabase(player, score);
+
+        setTimeout(() => {
+          openLeaderboardModal(score);
+        }, 3000);
+      };
+
+      // Leaderboard Top Bar Button
+      const btnTopLeaderboard = document.getElementById('btn-top-leaderboard');
+      if (btnTopLeaderboard) {
+        btnTopLeaderboard.addEventListener('click', function (e) {
+          e.stopPropagation();
+          openLeaderboardModal();
+        });
+      }
+
+      // Close Button
+      const btnCloseLeaderboard = document.getElementById('btnCloseLeaderboard');
+      if (btnCloseLeaderboard) {
+        btnCloseLeaderboard.addEventListener('click', function (e) {
+          e.stopPropagation();
+          closeLeaderboardModal();
+        });
+      }
+
+
+
+
+
+      // Ask fullscreen to re-layout smoothly on rotation/resize.
+      window.addEventListener('orientationchange', function () {
+        setTimeout(requestFullScreen, 50);
+      });
+    })();
+
+    // iOS Touch Fix: Prevent Safari from stealing gestures and causing ghost-touch issues.
+    document.addEventListener('touchstart', function(e) {
+      if (e.target.tagName === 'CANVAS') {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    document.addEventListener('touchmove', function(e) {
+      if (e.target.tagName === 'CANVAS') {
+        e.preventDefault();
+      }
+    }, { passive: false });
+  </script>
+</body>
+
+</html>
