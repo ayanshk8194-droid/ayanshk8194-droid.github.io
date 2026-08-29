@@ -1446,6 +1446,18 @@
         setTimeout(requestFullScreen, 50);
       });
     })();
+
+    // iOS Touch Fix: Prevent Safari from stealing gestures and causing ghost-touch issues.
+    document.addEventListener('touchstart', function(e) {
+      if (e.target.tagName === 'CANVAS') {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    document.addEventListener('touchmove', function(e) {
+      if (e.target.tagName === 'CANVAS') {
+        e.preventDefault();
+      }
+    }, { passive: false });
   </script>
 </body>
 

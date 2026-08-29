@@ -19,5 +19,14 @@ if (content.includes(target2)) {
     console.log("Patch 2 (onGameEnd hook) applied successfully!");
 }
 
+// 3. Increase gap between galaxy icons on Game Over screen
+const target3 = 'Xn([or("galaxyOrange"),tr(.7),Hn(.20*zn(),.28*Wn()),nr(),Kn("right")])';
+const replacement3 = 'Xn([or("galaxyOrange"),tr(.7),Hn(.18*zn(),.28*Wn()),nr(),Kn("right")])';
+
+if (content.includes(target3)) {
+    content = content.replace(target3, replacement3);
+    console.log("Patch 3 (galaxy gap) applied successfully!");
+}
+
 fs.writeFileSync('app.bundle.js', content, 'utf8');
 console.log("Done! app.bundle.js has been patched.");
